@@ -1,0 +1,75 @@
+name: ci-eval-pipeline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aegis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    env:
+      AEGIS_JWT_SECRET: 0123456789abcdef0123456789abcdef
+      AEGIS_APPROVAL_SECRET: abcdef0123456789abcdef0123456789
+      DATABASE_URL: postgresql+asyncpg://aegis_app:app@localhost:5432/aegis
+      MIGRATOR_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/aegis
+      REDIS_URL: redis://localhost:6379/0
+      AEGIS_AUTO_MIGRATE: "1"
+      AEGIS_BOOTSTRAP_EMAIL: dev@demo.aegisforge.local
+      AEGIS_BOOTSTRAP_PASSWORD: developer-password
+      AEGIS_BOOTSTRAP_ADMIN_EMAIL: admin@demo.aegisforge.local
+      AEGIS_BOOTSTRAP_ADMIN_PASSWORD: admin-password
+      AEGIS_SCIM_TOKEN: scim-demo-token-value-0123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/unit -q -m "not slow"
+
+  eval:
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/evaluation -q
+        env:
+          AEGIS_JWT_SECRET: 0123456789abcdef0123456789abcdef
+          AEGIS_APPROVAL_SECRET: abcdef0123456789abcdef0123456789
+
+  real-retrieval-models:
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements-eval.txt
+      - run: python -m pytest tests/unit/test_real_retrieval_models.py -v
+        env:
+          AEGIS_JWT_SECRET: 0123456789abcdef0123456789abcdef
+          AEGIS_APPROVAL_SECRET: abcdef0123456789abcdef0123456789

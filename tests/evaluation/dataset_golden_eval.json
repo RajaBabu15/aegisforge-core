@@ -1,0 +1,806 @@
+{
+  "corpus": [
+    {
+      "doc_id": "doc-01",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0001 clears only when the operator runs RESET-0001."
+    },
+    {
+      "doc_id": "doc-02",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0002 clears only when the operator runs RESET-0002."
+    },
+    {
+      "doc_id": "doc-03",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0003 clears only when the operator runs RESET-0003."
+    },
+    {
+      "doc_id": "doc-04",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0004 clears only when the operator runs RESET-0004."
+    },
+    {
+      "doc_id": "doc-05",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0005 clears only when the operator runs RESET-0005."
+    },
+    {
+      "doc_id": "doc-06",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0006 clears only when the operator runs RESET-0006."
+    },
+    {
+      "doc_id": "doc-07",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0007 clears only when the operator runs RESET-0007."
+    },
+    {
+      "doc_id": "doc-08",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0008 clears only when the operator runs RESET-0008."
+    },
+    {
+      "doc_id": "doc-09",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0009 clears only when the operator runs RESET-0009."
+    },
+    {
+      "doc_id": "doc-10",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0010 clears only when the operator runs RESET-0010."
+    },
+    {
+      "doc_id": "doc-11",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0011 clears only when the operator runs RESET-0011."
+    },
+    {
+      "doc_id": "doc-12",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0012 clears only when the operator runs RESET-0012."
+    },
+    {
+      "doc_id": "doc-13",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0013 clears only when the operator runs RESET-0013."
+    },
+    {
+      "doc_id": "doc-14",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0014 clears only when the operator runs RESET-0014."
+    },
+    {
+      "doc_id": "doc-15",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0015 clears only when the operator runs RESET-0015."
+    },
+    {
+      "doc_id": "doc-16",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0016 clears only when the operator runs RESET-0016."
+    },
+    {
+      "doc_id": "doc-17",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0017 clears only when the operator runs RESET-0017."
+    },
+    {
+      "doc_id": "doc-18",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0018 clears only when the operator runs RESET-0018."
+    },
+    {
+      "doc_id": "doc-19",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0019 clears only when the operator runs RESET-0019."
+    },
+    {
+      "doc_id": "doc-20",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0020 clears only when the operator runs RESET-0020."
+    },
+    {
+      "doc_id": "doc-21",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0021 clears only when the operator runs RESET-0021."
+    },
+    {
+      "doc_id": "doc-22",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0022 clears only when the operator runs RESET-0022."
+    },
+    {
+      "doc_id": "doc-23",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0023 clears only when the operator runs RESET-0023."
+    },
+    {
+      "doc_id": "doc-24",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0024 clears only when the operator runs RESET-0024."
+    },
+    {
+      "doc_id": "doc-25",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0025 clears only when the operator runs RESET-0025."
+    },
+    {
+      "doc_id": "doc-26",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0026 clears only when the operator runs RESET-0026."
+    },
+    {
+      "doc_id": "doc-27",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0027 clears only when the operator runs RESET-0027."
+    },
+    {
+      "doc_id": "doc-28",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0028 clears only when the operator runs RESET-0028."
+    },
+    {
+      "doc_id": "doc-29",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0029 clears only when the operator runs RESET-0029."
+    },
+    {
+      "doc_id": "doc-30",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0030 clears only when the operator runs RESET-0030."
+    },
+    {
+      "doc_id": "doc-31",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0031 clears only when the operator runs RESET-0031."
+    },
+    {
+      "doc_id": "doc-32",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0032 clears only when the operator runs RESET-0032."
+    },
+    {
+      "doc_id": "doc-33",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0033 clears only when the operator runs RESET-0033."
+    },
+    {
+      "doc_id": "doc-34",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0034 clears only when the operator runs RESET-0034."
+    },
+    {
+      "doc_id": "doc-35",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0035 clears only when the operator runs RESET-0035."
+    },
+    {
+      "doc_id": "doc-36",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0036 clears only when the operator runs RESET-0036."
+    },
+    {
+      "doc_id": "doc-37",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0037 clears only when the operator runs RESET-0037."
+    },
+    {
+      "doc_id": "doc-38",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0038 clears only when the operator runs RESET-0038."
+    },
+    {
+      "doc_id": "doc-39",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0039 clears only when the operator runs RESET-0039."
+    },
+    {
+      "doc_id": "doc-40",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0040 clears only when the operator runs RESET-0040."
+    },
+    {
+      "doc_id": "doc-41",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0041 clears only when the operator runs RESET-0041."
+    },
+    {
+      "doc_id": "doc-42",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0042 clears only when the operator runs RESET-0042."
+    },
+    {
+      "doc_id": "doc-43",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0043 clears only when the operator runs RESET-0043."
+    },
+    {
+      "doc_id": "doc-44",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0044 clears only when the operator runs RESET-0044."
+    },
+    {
+      "doc_id": "doc-45",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0045 clears only when the operator runs RESET-0045."
+    },
+    {
+      "doc_id": "doc-46",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0046 clears only when the operator runs RESET-0046."
+    },
+    {
+      "doc_id": "doc-47",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0047 clears only when the operator runs RESET-0047."
+    },
+    {
+      "doc_id": "doc-48",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0048 clears only when the operator runs RESET-0048."
+    },
+    {
+      "doc_id": "doc-49",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0049 clears only when the operator runs RESET-0049."
+    },
+    {
+      "doc_id": "doc-50",
+      "page": 1,
+      "line_start": 1,
+      "line_end": 1,
+      "content": "Fault AF0050 clears only when the operator runs RESET-0050."
+    }
+  ],
+  "queries": [
+    {
+      "query": "AF0001",
+      "relevant_doc_ids": [
+        "doc-01"
+      ],
+      "expected_facts": [
+        "RESET-0001"
+      ]
+    },
+    {
+      "query": "AF0002",
+      "relevant_doc_ids": [
+        "doc-02"
+      ],
+      "expected_facts": [
+        "RESET-0002"
+      ]
+    },
+    {
+      "query": "AF0003",
+      "relevant_doc_ids": [
+        "doc-03"
+      ],
+      "expected_facts": [
+        "RESET-0003"
+      ]
+    },
+    {
+      "query": "AF0004",
+      "relevant_doc_ids": [
+        "doc-04"
+      ],
+      "expected_facts": [
+        "RESET-0004"
+      ]
+    },
+    {
+      "query": "AF0005",
+      "relevant_doc_ids": [
+        "doc-05"
+      ],
+      "expected_facts": [
+        "RESET-0005"
+      ]
+    },
+    {
+      "query": "AF0006",
+      "relevant_doc_ids": [
+        "doc-06"
+      ],
+      "expected_facts": [
+        "RESET-0006"
+      ]
+    },
+    {
+      "query": "AF0007",
+      "relevant_doc_ids": [
+        "doc-07"
+      ],
+      "expected_facts": [
+        "RESET-0007"
+      ]
+    },
+    {
+      "query": "AF0008",
+      "relevant_doc_ids": [
+        "doc-08"
+      ],
+      "expected_facts": [
+        "RESET-0008"
+      ]
+    },
+    {
+      "query": "AF0009",
+      "relevant_doc_ids": [
+        "doc-09"
+      ],
+      "expected_facts": [
+        "RESET-0009"
+      ]
+    },
+    {
+      "query": "AF0010",
+      "relevant_doc_ids": [
+        "doc-10"
+      ],
+      "expected_facts": [
+        "RESET-0010"
+      ]
+    },
+    {
+      "query": "AF0011",
+      "relevant_doc_ids": [
+        "doc-11"
+      ],
+      "expected_facts": [
+        "RESET-0011"
+      ]
+    },
+    {
+      "query": "AF0012",
+      "relevant_doc_ids": [
+        "doc-12"
+      ],
+      "expected_facts": [
+        "RESET-0012"
+      ]
+    },
+    {
+      "query": "AF0013",
+      "relevant_doc_ids": [
+        "doc-13"
+      ],
+      "expected_facts": [
+        "RESET-0013"
+      ]
+    },
+    {
+      "query": "AF0014",
+      "relevant_doc_ids": [
+        "doc-14"
+      ],
+      "expected_facts": [
+        "RESET-0014"
+      ]
+    },
+    {
+      "query": "AF0015",
+      "relevant_doc_ids": [
+        "doc-15"
+      ],
+      "expected_facts": [
+        "RESET-0015"
+      ]
+    },
+    {
+      "query": "AF0016",
+      "relevant_doc_ids": [
+        "doc-16"
+      ],
+      "expected_facts": [
+        "RESET-0016"
+      ]
+    },
+    {
+      "query": "AF0017",
+      "relevant_doc_ids": [
+        "doc-17"
+      ],
+      "expected_facts": [
+        "RESET-0017"
+      ]
+    },
+    {
+      "query": "AF0018",
+      "relevant_doc_ids": [
+        "doc-18"
+      ],
+      "expected_facts": [
+        "RESET-0018"
+      ]
+    },
+    {
+      "query": "AF0019",
+      "relevant_doc_ids": [
+        "doc-19"
+      ],
+      "expected_facts": [
+        "RESET-0019"
+      ]
+    },
+    {
+      "query": "AF0020",
+      "relevant_doc_ids": [
+        "doc-20"
+      ],
+      "expected_facts": [
+        "RESET-0020"
+      ]
+    },
+    {
+      "query": "AF0021",
+      "relevant_doc_ids": [
+        "doc-21"
+      ],
+      "expected_facts": [
+        "RESET-0021"
+      ]
+    },
+    {
+      "query": "AF0022",
+      "relevant_doc_ids": [
+        "doc-22"
+      ],
+      "expected_facts": [
+        "RESET-0022"
+      ]
+    },
+    {
+      "query": "AF0023",
+      "relevant_doc_ids": [
+        "doc-23"
+      ],
+      "expected_facts": [
+        "RESET-0023"
+      ]
+    },
+    {
+      "query": "AF0024",
+      "relevant_doc_ids": [
+        "doc-24"
+      ],
+      "expected_facts": [
+        "RESET-0024"
+      ]
+    },
+    {
+      "query": "AF0025",
+      "relevant_doc_ids": [
+        "doc-25"
+      ],
+      "expected_facts": [
+        "RESET-0025"
+      ]
+    },
+    {
+      "query": "AF0026",
+      "relevant_doc_ids": [
+        "doc-26"
+      ],
+      "expected_facts": [
+        "RESET-0026"
+      ]
+    },
+    {
+      "query": "AF0027",
+      "relevant_doc_ids": [
+        "doc-27"
+      ],
+      "expected_facts": [
+        "RESET-0027"
+      ]
+    },
+    {
+      "query": "AF0028",
+      "relevant_doc_ids": [
+        "doc-28"
+      ],
+      "expected_facts": [
+        "RESET-0028"
+      ]
+    },
+    {
+      "query": "AF0029",
+      "relevant_doc_ids": [
+        "doc-29"
+      ],
+      "expected_facts": [
+        "RESET-0029"
+      ]
+    },
+    {
+      "query": "AF0030",
+      "relevant_doc_ids": [
+        "doc-30"
+      ],
+      "expected_facts": [
+        "RESET-0030"
+      ]
+    },
+    {
+      "query": "AF0031",
+      "relevant_doc_ids": [
+        "doc-31"
+      ],
+      "expected_facts": [
+        "RESET-0031"
+      ]
+    },
+    {
+      "query": "AF0032",
+      "relevant_doc_ids": [
+        "doc-32"
+      ],
+      "expected_facts": [
+        "RESET-0032"
+      ]
+    },
+    {
+      "query": "AF0033",
+      "relevant_doc_ids": [
+        "doc-33"
+      ],
+      "expected_facts": [
+        "RESET-0033"
+      ]
+    },
+    {
+      "query": "AF0034",
+      "relevant_doc_ids": [
+        "doc-34"
+      ],
+      "expected_facts": [
+        "RESET-0034"
+      ]
+    },
+    {
+      "query": "AF0035",
+      "relevant_doc_ids": [
+        "doc-35"
+      ],
+      "expected_facts": [
+        "RESET-0035"
+      ]
+    },
+    {
+      "query": "AF0036",
+      "relevant_doc_ids": [
+        "doc-36"
+      ],
+      "expected_facts": [
+        "RESET-0036"
+      ]
+    },
+    {
+      "query": "AF0037",
+      "relevant_doc_ids": [
+        "doc-37"
+      ],
+      "expected_facts": [
+        "RESET-0037"
+      ]
+    },
+    {
+      "query": "AF0038",
+      "relevant_doc_ids": [
+        "doc-38"
+      ],
+      "expected_facts": [
+        "RESET-0038"
+      ]
+    },
+    {
+      "query": "AF0039",
+      "relevant_doc_ids": [
+        "doc-39"
+      ],
+      "expected_facts": [
+        "RESET-0039"
+      ]
+    },
+    {
+      "query": "AF0040",
+      "relevant_doc_ids": [
+        "doc-40"
+      ],
+      "expected_facts": [
+        "RESET-0040"
+      ]
+    },
+    {
+      "query": "AF0041",
+      "relevant_doc_ids": [
+        "doc-41"
+      ],
+      "expected_facts": [
+        "RESET-0041"
+      ]
+    },
+    {
+      "query": "AF0042",
+      "relevant_doc_ids": [
+        "doc-42"
+      ],
+      "expected_facts": [
+        "RESET-0042"
+      ]
+    },
+    {
+      "query": "AF0043",
+      "relevant_doc_ids": [
+        "doc-43"
+      ],
+      "expected_facts": [
+        "RESET-0043"
+      ]
+    },
+    {
+      "query": "AF0044",
+      "relevant_doc_ids": [
+        "doc-44"
+      ],
+      "expected_facts": [
+        "RESET-0044"
+      ]
+    },
+    {
+      "query": "AF0045",
+      "relevant_doc_ids": [
+        "doc-45"
+      ],
+      "expected_facts": [
+        "RESET-0045"
+      ]
+    },
+    {
+      "query": "AF0046",
+      "relevant_doc_ids": [
+        "doc-46"
+      ],
+      "expected_facts": [
+        "RESET-0046"
+      ]
+    },
+    {
+      "query": "AF0047",
+      "relevant_doc_ids": [
+        "doc-47"
+      ],
+      "expected_facts": [
+        "RESET-0047"
+      ]
+    },
+    {
+      "query": "AF0048",
+      "relevant_doc_ids": [
+        "doc-48"
+      ],
+      "expected_facts": [
+        "RESET-0048"
+      ]
+    },
+    {
+      "query": "AF0049",
+      "relevant_doc_ids": [
+        "doc-49"
+      ],
+      "expected_facts": [
+        "RESET-0049"
+      ]
+    },
+    {
+      "query": "AF0050",
+      "relevant_doc_ids": [
+        "doc-50"
+      ],
+      "expected_facts": [
+        "RESET-0050"
+      ]
+    }
+  ]
+}

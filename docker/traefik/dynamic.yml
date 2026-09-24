@@ -1,0 +1,11 @@
+http:
+  routers:
+    api:
+      rule: PathPrefix(`/`)
+      service: api
+      entryPoints: [web]
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: http://api:8000
