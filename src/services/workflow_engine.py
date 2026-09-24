@@ -303,19 +303,25 @@ class JobStore:
         return await self._select(session, job_id, for_update=True)
 
     async def _select(self, session, job_id: str, *, for_update: bool) -> dict | None:
-        found = await session.execute(
-            text(
-                """
-                SELECT id, tenant_id, user_id, trace_id, workflow_definition_version,
-                       current_phase, execution_payload_state, is_suspended_for_approval,
-                       accumulated_token_cost
-                FROM agent_workflow_state
-                WHERE id = CAST(:id AS uuid)
-                """
-                + (" FOR UPDATE" if for_update else "")
-            ),
-            {"id": job_id},
+        query = (
+            """
+            SELECT id, tenant_id, user_id, trace_id, workflow_definition_version,
+                   current_phase, execution_payload_state, is_suspended_for_approval,
+                   accumulated_token_cost
+            FROM agent_workflow_state
+            WHERE id = CAST(:id AS uuid)
+            FOR UPDATE
+            """
+            if for_update
+            else """
+            SELECT id, tenant_id, user_id, trace_id, workflow_definition_version,
+                   current_phase, execution_payload_state, is_suspended_for_approval,
+                   accumulated_token_cost
+            FROM agent_workflow_state
+            WHERE id = CAST(:id AS uuid)
+            """
         )
+        found = await session.execute(text(query), {"id": job_id})
         row = found.mappings().first()
         if row is None:
             return None
