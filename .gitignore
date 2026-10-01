@@ -10,6 +10,5 @@ htmlcov/
 
 data/
 docker/local.env
-docs/
 
 .DS_Store

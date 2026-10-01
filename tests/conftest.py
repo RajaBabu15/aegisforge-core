@@ -13,6 +13,10 @@ os.environ.setdefault("AEGIS_BOOTSTRAP_EMAIL", "dev@demo.aegisforge.local")
 os.environ.setdefault("AEGIS_BOOTSTRAP_PASSWORD", "developer-password")
 os.environ.setdefault("AEGIS_BOOTSTRAP_ADMIN_EMAIL", "admin@demo.aegisforge.local")
 os.environ.setdefault("AEGIS_BOOTSTRAP_ADMIN_PASSWORD", "admin-password")
+os.environ.setdefault("AEGIS_BOOTSTRAP_PEER_EMAIL", "dev@acme.aegisforge.local")
+os.environ.setdefault("AEGIS_BOOTSTRAP_PEER_PASSWORD", "acme-developer-password")
+os.environ.setdefault("AEGIS_BOOTSTRAP_PEER_ADMIN_EMAIL", "admin@acme.aegisforge.local")
+os.environ.setdefault("AEGIS_BOOTSTRAP_PEER_ADMIN_PASSWORD", "acme-admin-password")
 os.environ.setdefault("AEGIS_SCIM_TOKEN", "scim-demo-token-value-0123456789")
 os.environ["AEGIS_AUTO_MIGRATE"] = "1"
 
@@ -68,6 +72,10 @@ def _bootstrap_settings(migrator: str, app_url: str) -> Settings:
         bootstrap_password=os.environ.get("AEGIS_BOOTSTRAP_PASSWORD"),
         bootstrap_admin_email=os.environ.get("AEGIS_BOOTSTRAP_ADMIN_EMAIL"),
         bootstrap_admin_password=os.environ.get("AEGIS_BOOTSTRAP_ADMIN_PASSWORD"),
+        bootstrap_peer_email=os.environ.get("AEGIS_BOOTSTRAP_PEER_EMAIL"),
+        bootstrap_peer_password=os.environ.get("AEGIS_BOOTSTRAP_PEER_PASSWORD"),
+        bootstrap_peer_admin_email=os.environ.get("AEGIS_BOOTSTRAP_PEER_ADMIN_EMAIL"),
+        bootstrap_peer_admin_password=os.environ.get("AEGIS_BOOTSTRAP_PEER_ADMIN_PASSWORD"),
         scim_token=os.environ.get("AEGIS_SCIM_TOKEN"),
     )
 
@@ -93,6 +101,10 @@ def settings(pg_uris) -> Settings:
         bootstrap_password="developer-password",
         bootstrap_admin_email="admin@demo.aegisforge.local",
         bootstrap_admin_password="admin-password",
+        bootstrap_peer_email="dev@acme.aegisforge.local",
+        bootstrap_peer_password="acme-developer-password",
+        bootstrap_peer_admin_email="admin@acme.aegisforge.local",
+        bootstrap_peer_admin_password="acme-admin-password",
         scim_token="scim-demo-token-value-0123456789",
     )
 

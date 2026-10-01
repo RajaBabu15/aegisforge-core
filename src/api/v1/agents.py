@@ -2,6 +2,7 @@ import json
 import uuid
 
 from fastapi import APIRouter, Request
+from sqlalchemy import text
 
 from src.core.errors import AegisError
 from src.core.security import APPROVAL_WINDOW_SECONDS, sha256_hex, verify_approval

@@ -81,6 +81,29 @@ async def test_refresh_reuse_revokes_family(client, settings, caplog) -> None:
 
 
 @pytest.mark.integration
+async def test_audit_returns_replay_row_after_refresh_reuse(client) -> None:
+    first = await _login(client, "dev@demo.aegisforge.local", "developer-password")
+    rotated = await client.post(
+        "/oauth/token",
+        data={"grant_type": "refresh_token", "refresh_token": first["refresh_token"]},
+    )
+    assert rotated.status_code == 200, rotated.text
+    replay = await client.post(
+        "/oauth/token",
+        data={"grant_type": "refresh_token", "refresh_token": first["refresh_token"]},
+    )
+    assert replay.status_code == 401
+    admin = await _login(client, "admin@demo.aegisforge.local", "admin-password")
+    audit = await client.get(
+        "/api/v1/audit",
+        headers={"Authorization": f"Bearer {admin['access_token']}"},
+    )
+    assert audit.status_code == 200, audit.text
+    reasons = [row["rejection_reason_code"] for row in audit.json()["events"]]
+    assert "REFRESH_TOKEN_REUSE_DETECTED" in reasons
+
+
+@pytest.mark.integration
 async def test_password_grant_is_rejected(client) -> None:
     response = await client.post("/oauth/token", data={"grant_type": "password", "username": "a", "password": "b"})
     assert response.status_code == 400

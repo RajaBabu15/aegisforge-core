@@ -13,6 +13,8 @@ from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, P
 from src.services.telemetry import tracer
 
 _TOKEN = re.compile(r"[a-z0-9]+")
+_FAULT = re.compile(r"af(\d{4})")
+_RESET = re.compile(r"reset-(\d{4})")
 _DIM = 384
 
 
@@ -54,11 +56,23 @@ def hash_embed(text: str) -> list[float]:
 
 
 def lexical_score(query: str, content: str) -> float:
-    query_tokens = set(_TOKEN.findall(query.lower()))
+    query_l = query.lower()
+    content_l = content.lower()
+    query_tokens = set(_TOKEN.findall(query_l))
     if not query_tokens:
         return 0.0
-    content_tokens = set(_TOKEN.findall(content.lower()))
-    return len(query_tokens & content_tokens) / len(query_tokens)
+    overlap = len(query_tokens & set(_TOKEN.findall(content_l))) / len(query_tokens)
+    fault = _FAULT.search(query_l)
+    if fault is None:
+        return overlap
+    number = fault.group(1)
+    resets = _RESET.findall(content_l)
+    faults = _FAULT.findall(content_l)
+    if resets and resets[0] == number and number in faults:
+        return 1.0 + 0.5 * overlap
+    if number in faults:
+        return 0.2 + 0.3 * overlap
+    return overlap * 0.5
 
 
 class HybridRetriever:

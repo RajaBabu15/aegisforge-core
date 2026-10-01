@@ -1,8 +1,8 @@
 # AegisForge
 
-Multi-tenant agent API. The build contract is [docs/PRD.md](docs/PRD.md).
+Multi-tenant agent **control plane**. The build contract is [docs/PRD.md](docs/PRD.md). Demo script: [docs/DEMO.md](docs/DEMO.md). Threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md). Eval notes: [docs/EVAL.md](docs/EVAL.md).
 
-Identity is checked at the edge and again in PostgreSQL. Refresh-token reuse revokes the whole family. Agent tools run only when the checkpoint scopes allow them, and high-risk tools stay suspended until a signed approval. Hybrid search cites chunks or returns `INSUFFICIENT_EVIDENCE` before any generator call.
+Identity is checked at the JWT and again as a Postgres GUC. Refresh-token reuse revokes the whole family. Tool selection is deterministic (first line of the task) so authorization can be tested. High-risk tools stay suspended until a signed approval. Hybrid search cites chunks or returns `INSUFFICIENT_EVIDENCE` before any generator call.
 
 ## Run the cluster
 
@@ -23,7 +23,7 @@ pytest tests/evaluation/test_rag_faithfulness.py -v
 k6 run scripts/load_test_k6.js   # ACCESS_TOKEN=... BASE_URL=http://localhost:8000
 ```
 
-The cached-authorization k6 profile targets p95 under 45 ms. Run it on the compose stack; this repository does not record a number from a machine that does not have k6.
+The cached-authorization k6 profile is `scripts/load_test_k6.js` against `/api/v1/me` only. A captured run, when present, lives at [docs/evidence/k6.txt](docs/evidence/k6.txt). This repository does not invent a p95. Grafana is optional; an empty dashboard is worse than skipping it. A captured Tempo trace, when present, lives at [docs/evidence/tempo-iam-workflow-llm.png](docs/evidence/tempo-iam-workflow-llm.png).
 
 ## Model switches
 
@@ -35,4 +35,4 @@ Langfuse receives spans only when `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, and `L
 
 ## Running tests locally
 
-`pytest tests/unit` needs a Postgres to migrate against. Either export `DATABASE_URL`/`MIGRATOR_DATABASE_URL` pointing at a running Postgres, or `pip install -r requirements-dev.txt` (adds `pgserver`, an embedded Postgres for local dev) and run with no env vars set — `tests/conftest.py` falls back to it automatically. `pgserver` has no Linux/arm64 wheel, so it stays out of `requirements.txt` and is never installed in the API image or in CI.
+`pytest tests/unit` needs a Postgres to migrate against. Either export `DATABASE_URL`/`MIGRATOR_DATABASE_URL` pointing at a running Postgres, or `pip install -r requirements-dev.txt` (pytest, fakeredis, and `pgserver` for an embedded Postgres) and run with no env vars set — `tests/conftest.py` falls back to it automatically. `pgserver` has no Linux/arm64 wheel, so it stays out of `requirements.txt` and is never installed in the API image or in CI. CI installs pytest from pins next to `requirements.txt`, not the full dev extra.

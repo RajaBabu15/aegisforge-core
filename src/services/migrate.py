@@ -75,8 +75,39 @@ async def bootstrap(migrator_url: str, settings: Settings) -> None:
                 sha256_hex(settings.scim_token),
                 tenant_id,
             )
+        await _bootstrap_peer(connection, settings)
     finally:
         await connection.close()
+
+
+async def _bootstrap_peer(connection: asyncpg.Connection, settings: Settings) -> None:
+    if not settings.bootstrap_peer_email or not settings.bootstrap_peer_password:
+        return
+    if not settings.bootstrap_peer_admin_email or not settings.bootstrap_peer_admin_password:
+        return
+    tenant_id = await connection.fetchval(
+        """
+        INSERT INTO organizations (name, domain_lock)
+        VALUES ('Acme', $1)
+        ON CONFLICT (domain_lock) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id
+        """,
+        settings.bootstrap_peer_domain,
+    )
+    await _user(
+        connection,
+        tenant_id,
+        settings.bootstrap_peer_admin_email,
+        settings.bootstrap_peer_admin_password,
+        "org_admin",
+    )
+    await _user(
+        connection,
+        tenant_id,
+        settings.bootstrap_peer_email,
+        settings.bootstrap_peer_password,
+        "workspace_developer",
+    )
 
 
 async def _user(connection: asyncpg.Connection, tenant_id, email: str, password: str, role: str) -> None:

@@ -55,6 +55,22 @@ class Settings(BaseSettings):
     bootstrap_domain: str = Field(
         "demo.aegisforge.local", validation_alias=AliasChoices("AEGIS_BOOTSTRAP_DOMAIN", "BOOTSTRAP_DOMAIN")
     )
+    bootstrap_peer_domain: str = Field(
+        "acme.aegisforge.local",
+        validation_alias=AliasChoices("AEGIS_BOOTSTRAP_PEER_DOMAIN", "BOOTSTRAP_PEER_DOMAIN"),
+    )
+    bootstrap_peer_email: str | None = Field(
+        None, validation_alias=AliasChoices("AEGIS_BOOTSTRAP_PEER_EMAIL", "BOOTSTRAP_PEER_EMAIL")
+    )
+    bootstrap_peer_password: str | None = Field(
+        None, validation_alias=AliasChoices("AEGIS_BOOTSTRAP_PEER_PASSWORD", "BOOTSTRAP_PEER_PASSWORD")
+    )
+    bootstrap_peer_admin_email: str | None = Field(
+        None, validation_alias=AliasChoices("AEGIS_BOOTSTRAP_PEER_ADMIN_EMAIL", "BOOTSTRAP_PEER_ADMIN_EMAIL")
+    )
+    bootstrap_peer_admin_password: str | None = Field(
+        None, validation_alias=AliasChoices("AEGIS_BOOTSTRAP_PEER_ADMIN_PASSWORD", "BOOTSTRAP_PEER_ADMIN_PASSWORD")
+    )
 
     @field_validator("aegis_jwt_secret", "aegis_approval_secret")
     @classmethod

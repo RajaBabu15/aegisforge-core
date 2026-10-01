@@ -75,280 +75,280 @@
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0011 clears only when the operator runs RESET-0011."
+      "content": "Fault AF0021 clears only when the operator runs RESET-0021."
     },
     {
       "doc_id": "doc-12",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0012 clears only when the operator runs RESET-0012."
+      "content": "Fault AF0022 clears only when the operator runs RESET-0022."
     },
     {
       "doc_id": "doc-13",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0013 clears only when the operator runs RESET-0013."
+      "content": "Fault AF0023 clears only when the operator runs RESET-0023."
     },
     {
       "doc_id": "doc-14",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0014 clears only when the operator runs RESET-0014."
+      "content": "Fault AF0024 clears only when the operator runs RESET-0024."
     },
     {
       "doc_id": "doc-15",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0015 clears only when the operator runs RESET-0015."
+      "content": "Fault AF0025 clears only when the operator runs RESET-0025."
     },
     {
       "doc_id": "doc-16",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0016 clears only when the operator runs RESET-0016."
+      "content": "Fault AF0026 clears only when the operator runs RESET-0026."
     },
     {
       "doc_id": "doc-17",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0017 clears only when the operator runs RESET-0017."
+      "content": "Fault AF0027 clears only when the operator runs RESET-0027."
     },
     {
       "doc_id": "doc-18",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0018 clears only when the operator runs RESET-0018."
+      "content": "Fault AF0028 clears only when the operator runs RESET-0028."
     },
     {
       "doc_id": "doc-19",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0019 clears only when the operator runs RESET-0019."
+      "content": "Fault AF0029 clears only when the operator runs RESET-0029."
     },
     {
       "doc_id": "doc-20",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0020 clears only when the operator runs RESET-0020."
+      "content": "Fault AF0030 clears only when the operator runs RESET-0030."
     },
     {
       "doc_id": "doc-21",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0021 clears only when the operator runs RESET-0021."
+      "content": "Fault AF0031 clears only when the operator runs RESET-0031."
     },
     {
       "doc_id": "doc-22",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0022 clears only when the operator runs RESET-0022."
+      "content": "Fault AF0032 clears only when the operator runs RESET-0032."
     },
     {
       "doc_id": "doc-23",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0023 clears only when the operator runs RESET-0023."
+      "content": "Fault AF0033 clears only when the operator runs RESET-0033."
     },
     {
       "doc_id": "doc-24",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0024 clears only when the operator runs RESET-0024."
+      "content": "Fault AF0034 clears only when the operator runs RESET-0034."
     },
     {
       "doc_id": "doc-25",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0025 clears only when the operator runs RESET-0025."
+      "content": "Fault AF0035 clears only when the operator runs RESET-0035."
     },
     {
       "doc_id": "doc-26",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0026 clears only when the operator runs RESET-0026."
+      "content": "Fault AF0036 clears only when the operator runs RESET-0036."
     },
     {
       "doc_id": "doc-27",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0027 clears only when the operator runs RESET-0027."
+      "content": "Fault AF0037 clears only when the operator runs RESET-0037."
     },
     {
       "doc_id": "doc-28",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0028 clears only when the operator runs RESET-0028."
+      "content": "Fault AF0038 clears only when the operator runs RESET-0038."
     },
     {
       "doc_id": "doc-29",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0029 clears only when the operator runs RESET-0029."
+      "content": "Fault AF0039 clears only when the operator runs RESET-0039."
     },
     {
       "doc_id": "doc-30",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0030 clears only when the operator runs RESET-0030."
+      "content": "Fault AF0040 clears only when the operator runs RESET-0040."
     },
     {
       "doc_id": "doc-31",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0031 clears only when the operator runs RESET-0031."
+      "content": "AF0021 is often confused with AF0121. AF0121 clears only when the operator runs RESET-0121. Do not run RESET-0021 on AF0121."
     },
     {
       "doc_id": "doc-32",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0032 clears only when the operator runs RESET-0032."
+      "content": "AF0022 is often confused with AF0122. AF0122 clears only when the operator runs RESET-0122. Do not run RESET-0022 on AF0122."
     },
     {
       "doc_id": "doc-33",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0033 clears only when the operator runs RESET-0033."
+      "content": "AF0023 is often confused with AF0123. AF0123 clears only when the operator runs RESET-0123. Do not run RESET-0023 on AF0123."
     },
     {
       "doc_id": "doc-34",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0034 clears only when the operator runs RESET-0034."
+      "content": "AF0024 is often confused with AF0124. AF0124 clears only when the operator runs RESET-0124. Do not run RESET-0024 on AF0124."
     },
     {
       "doc_id": "doc-35",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0035 clears only when the operator runs RESET-0035."
+      "content": "AF0025 is often confused with AF0125. AF0125 clears only when the operator runs RESET-0125. Do not run RESET-0025 on AF0125."
     },
     {
       "doc_id": "doc-36",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0036 clears only when the operator runs RESET-0036."
+      "content": "AF0026 is often confused with AF0126. AF0126 clears only when the operator runs RESET-0126. Do not run RESET-0026 on AF0126."
     },
     {
       "doc_id": "doc-37",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0037 clears only when the operator runs RESET-0037."
+      "content": "AF0027 is often confused with AF0127. AF0127 clears only when the operator runs RESET-0127. Do not run RESET-0027 on AF0127."
     },
     {
       "doc_id": "doc-38",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0038 clears only when the operator runs RESET-0038."
+      "content": "AF0028 is often confused with AF0128. AF0128 clears only when the operator runs RESET-0128. Do not run RESET-0028 on AF0128."
     },
     {
       "doc_id": "doc-39",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0039 clears only when the operator runs RESET-0039."
+      "content": "AF0029 is often confused with AF0129. AF0129 clears only when the operator runs RESET-0129. Do not run RESET-0029 on AF0129."
     },
     {
       "doc_id": "doc-40",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0040 clears only when the operator runs RESET-0040."
+      "content": "AF0030 is often confused with AF0130. AF0130 clears only when the operator runs RESET-0130. Do not run RESET-0030 on AF0130."
     },
     {
       "doc_id": "doc-41",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0041 clears only when the operator runs RESET-0041."
+      "content": "AF0031 is often confused with AF0131. AF0131 clears only when the operator runs RESET-0131. Do not run RESET-0031 on AF0131."
     },
     {
       "doc_id": "doc-42",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0042 clears only when the operator runs RESET-0042."
+      "content": "AF0032 is often confused with AF0132. AF0132 clears only when the operator runs RESET-0132. Do not run RESET-0032 on AF0132."
     },
     {
       "doc_id": "doc-43",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0043 clears only when the operator runs RESET-0043."
+      "content": "AF0033 is often confused with AF0133. AF0133 clears only when the operator runs RESET-0133. Do not run RESET-0033 on AF0133."
     },
     {
       "doc_id": "doc-44",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0044 clears only when the operator runs RESET-0044."
+      "content": "AF0034 is often confused with AF0134. AF0134 clears only when the operator runs RESET-0134. Do not run RESET-0034 on AF0134."
     },
     {
       "doc_id": "doc-45",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0045 clears only when the operator runs RESET-0045."
+      "content": "AF0035 is often confused with AF0135. AF0135 clears only when the operator runs RESET-0135. Do not run RESET-0035 on AF0135."
     },
     {
       "doc_id": "doc-46",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0046 clears only when the operator runs RESET-0046."
+      "content": "AF0036 is often confused with AF0136. AF0136 clears only when the operator runs RESET-0136. Do not run RESET-0036 on AF0136."
     },
     {
       "doc_id": "doc-47",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0047 clears only when the operator runs RESET-0047."
+      "content": "AF0037 is often confused with AF0137. AF0137 clears only when the operator runs RESET-0137. Do not run RESET-0037 on AF0137."
     },
     {
       "doc_id": "doc-48",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0048 clears only when the operator runs RESET-0048."
+      "content": "AF0038 is often confused with AF0138. AF0138 clears only when the operator runs RESET-0138. Do not run RESET-0038 on AF0138."
     },
     {
       "doc_id": "doc-49",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0049 clears only when the operator runs RESET-0049."
+      "content": "AF0039 is often confused with AF0139. AF0139 clears only when the operator runs RESET-0139. Do not run RESET-0039 on AF0139."
     },
     {
       "doc_id": "doc-50",
       "page": 1,
       "line_start": 1,
       "line_end": 1,
-      "content": "Fault AF0050 clears only when the operator runs RESET-0050."
+      "content": "AF0040 is often confused with AF0140. AF0140 clears only when the operator runs RESET-0140. Do not run RESET-0040 on AF0140."
     }
   ],
   "queries": [
@@ -359,7 +359,8 @@
       ],
       "expected_facts": [
         "RESET-0001"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0002",
@@ -368,7 +369,8 @@
       ],
       "expected_facts": [
         "RESET-0002"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0003",
@@ -377,7 +379,8 @@
       ],
       "expected_facts": [
         "RESET-0003"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0004",
@@ -386,7 +389,8 @@
       ],
       "expected_facts": [
         "RESET-0004"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0005",
@@ -395,7 +399,8 @@
       ],
       "expected_facts": [
         "RESET-0005"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0006",
@@ -404,7 +409,8 @@
       ],
       "expected_facts": [
         "RESET-0006"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0007",
@@ -413,7 +419,8 @@
       ],
       "expected_facts": [
         "RESET-0007"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0008",
@@ -422,7 +429,8 @@
       ],
       "expected_facts": [
         "RESET-0008"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0009",
@@ -431,7 +439,8 @@
       ],
       "expected_facts": [
         "RESET-0009"
-      ]
+      ],
+      "forbidden_facts": []
     },
     {
       "query": "AF0010",
@@ -440,366 +449,467 @@
       ],
       "expected_facts": [
         "RESET-0010"
-      ]
-    },
-    {
-      "query": "AF0011",
-      "relevant_doc_ids": [
-        "doc-11"
       ],
-      "expected_facts": [
-        "RESET-0011"
-      ]
-    },
-    {
-      "query": "AF0012",
-      "relevant_doc_ids": [
-        "doc-12"
-      ],
-      "expected_facts": [
-        "RESET-0012"
-      ]
-    },
-    {
-      "query": "AF0013",
-      "relevant_doc_ids": [
-        "doc-13"
-      ],
-      "expected_facts": [
-        "RESET-0013"
-      ]
-    },
-    {
-      "query": "AF0014",
-      "relevant_doc_ids": [
-        "doc-14"
-      ],
-      "expected_facts": [
-        "RESET-0014"
-      ]
-    },
-    {
-      "query": "AF0015",
-      "relevant_doc_ids": [
-        "doc-15"
-      ],
-      "expected_facts": [
-        "RESET-0015"
-      ]
-    },
-    {
-      "query": "AF0016",
-      "relevant_doc_ids": [
-        "doc-16"
-      ],
-      "expected_facts": [
-        "RESET-0016"
-      ]
-    },
-    {
-      "query": "AF0017",
-      "relevant_doc_ids": [
-        "doc-17"
-      ],
-      "expected_facts": [
-        "RESET-0017"
-      ]
-    },
-    {
-      "query": "AF0018",
-      "relevant_doc_ids": [
-        "doc-18"
-      ],
-      "expected_facts": [
-        "RESET-0018"
-      ]
-    },
-    {
-      "query": "AF0019",
-      "relevant_doc_ids": [
-        "doc-19"
-      ],
-      "expected_facts": [
-        "RESET-0019"
-      ]
-    },
-    {
-      "query": "AF0020",
-      "relevant_doc_ids": [
-        "doc-20"
-      ],
-      "expected_facts": [
-        "RESET-0020"
-      ]
+      "forbidden_facts": []
     },
     {
       "query": "AF0021",
       "relevant_doc_ids": [
-        "doc-21"
+        "doc-11"
       ],
       "expected_facts": [
         "RESET-0021"
+      ],
+      "forbidden_facts": [
+        "RESET-0121"
       ]
     },
     {
       "query": "AF0022",
       "relevant_doc_ids": [
-        "doc-22"
+        "doc-12"
       ],
       "expected_facts": [
         "RESET-0022"
+      ],
+      "forbidden_facts": [
+        "RESET-0122"
       ]
     },
     {
       "query": "AF0023",
       "relevant_doc_ids": [
-        "doc-23"
+        "doc-13"
       ],
       "expected_facts": [
         "RESET-0023"
+      ],
+      "forbidden_facts": [
+        "RESET-0123"
       ]
     },
     {
       "query": "AF0024",
       "relevant_doc_ids": [
-        "doc-24"
+        "doc-14"
       ],
       "expected_facts": [
         "RESET-0024"
+      ],
+      "forbidden_facts": [
+        "RESET-0124"
       ]
     },
     {
       "query": "AF0025",
       "relevant_doc_ids": [
-        "doc-25"
+        "doc-15"
       ],
       "expected_facts": [
         "RESET-0025"
+      ],
+      "forbidden_facts": [
+        "RESET-0125"
       ]
     },
     {
       "query": "AF0026",
       "relevant_doc_ids": [
-        "doc-26"
+        "doc-16"
       ],
       "expected_facts": [
         "RESET-0026"
+      ],
+      "forbidden_facts": [
+        "RESET-0126"
       ]
     },
     {
       "query": "AF0027",
       "relevant_doc_ids": [
-        "doc-27"
+        "doc-17"
       ],
       "expected_facts": [
         "RESET-0027"
+      ],
+      "forbidden_facts": [
+        "RESET-0127"
       ]
     },
     {
       "query": "AF0028",
       "relevant_doc_ids": [
-        "doc-28"
+        "doc-18"
       ],
       "expected_facts": [
         "RESET-0028"
+      ],
+      "forbidden_facts": [
+        "RESET-0128"
       ]
     },
     {
       "query": "AF0029",
       "relevant_doc_ids": [
-        "doc-29"
+        "doc-19"
       ],
       "expected_facts": [
         "RESET-0029"
+      ],
+      "forbidden_facts": [
+        "RESET-0129"
       ]
     },
     {
       "query": "AF0030",
       "relevant_doc_ids": [
-        "doc-30"
+        "doc-20"
       ],
       "expected_facts": [
         "RESET-0030"
+      ],
+      "forbidden_facts": [
+        "RESET-0130"
       ]
     },
     {
       "query": "AF0031",
       "relevant_doc_ids": [
-        "doc-31"
+        "doc-21"
       ],
       "expected_facts": [
         "RESET-0031"
+      ],
+      "forbidden_facts": [
+        "RESET-0131"
       ]
     },
     {
       "query": "AF0032",
       "relevant_doc_ids": [
-        "doc-32"
+        "doc-22"
       ],
       "expected_facts": [
         "RESET-0032"
+      ],
+      "forbidden_facts": [
+        "RESET-0132"
       ]
     },
     {
       "query": "AF0033",
       "relevant_doc_ids": [
-        "doc-33"
+        "doc-23"
       ],
       "expected_facts": [
         "RESET-0033"
+      ],
+      "forbidden_facts": [
+        "RESET-0133"
       ]
     },
     {
       "query": "AF0034",
       "relevant_doc_ids": [
-        "doc-34"
+        "doc-24"
       ],
       "expected_facts": [
         "RESET-0034"
+      ],
+      "forbidden_facts": [
+        "RESET-0134"
       ]
     },
     {
       "query": "AF0035",
       "relevant_doc_ids": [
-        "doc-35"
+        "doc-25"
       ],
       "expected_facts": [
         "RESET-0035"
+      ],
+      "forbidden_facts": [
+        "RESET-0135"
       ]
     },
     {
       "query": "AF0036",
       "relevant_doc_ids": [
-        "doc-36"
+        "doc-26"
       ],
       "expected_facts": [
         "RESET-0036"
+      ],
+      "forbidden_facts": [
+        "RESET-0136"
       ]
     },
     {
       "query": "AF0037",
       "relevant_doc_ids": [
-        "doc-37"
+        "doc-27"
       ],
       "expected_facts": [
         "RESET-0037"
+      ],
+      "forbidden_facts": [
+        "RESET-0137"
       ]
     },
     {
       "query": "AF0038",
       "relevant_doc_ids": [
-        "doc-38"
+        "doc-28"
       ],
       "expected_facts": [
         "RESET-0038"
+      ],
+      "forbidden_facts": [
+        "RESET-0138"
       ]
     },
     {
       "query": "AF0039",
       "relevant_doc_ids": [
-        "doc-39"
+        "doc-29"
       ],
       "expected_facts": [
         "RESET-0039"
+      ],
+      "forbidden_facts": [
+        "RESET-0139"
       ]
     },
     {
       "query": "AF0040",
       "relevant_doc_ids": [
-        "doc-40"
+        "doc-30"
       ],
       "expected_facts": [
         "RESET-0040"
+      ],
+      "forbidden_facts": [
+        "RESET-0140"
       ]
     },
     {
-      "query": "AF0041",
+      "query": "how to clear alarm AF0001",
       "relevant_doc_ids": [
-        "doc-41"
+        "doc-01"
       ],
       "expected_facts": [
-        "RESET-0041"
+        "RESET-0001"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0002",
+      "relevant_doc_ids": [
+        "doc-02"
+      ],
+      "expected_facts": [
+        "RESET-0002"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0003",
+      "relevant_doc_ids": [
+        "doc-03"
+      ],
+      "expected_facts": [
+        "RESET-0003"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0004",
+      "relevant_doc_ids": [
+        "doc-04"
+      ],
+      "expected_facts": [
+        "RESET-0004"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0005",
+      "relevant_doc_ids": [
+        "doc-05"
+      ],
+      "expected_facts": [
+        "RESET-0005"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0006",
+      "relevant_doc_ids": [
+        "doc-06"
+      ],
+      "expected_facts": [
+        "RESET-0006"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0007",
+      "relevant_doc_ids": [
+        "doc-07"
+      ],
+      "expected_facts": [
+        "RESET-0007"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0008",
+      "relevant_doc_ids": [
+        "doc-08"
+      ],
+      "expected_facts": [
+        "RESET-0008"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0009",
+      "relevant_doc_ids": [
+        "doc-09"
+      ],
+      "expected_facts": [
+        "RESET-0009"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "how to clear alarm AF0010",
+      "relevant_doc_ids": [
+        "doc-10"
+      ],
+      "expected_facts": [
+        "RESET-0010"
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query": "AF0021 is often confused",
+      "relevant_doc_ids": [
+        "doc-11"
+      ],
+      "expected_facts": [
+        "RESET-0021"
+      ],
+      "forbidden_facts": [
+        "RESET-0121"
       ]
     },
     {
-      "query": "AF0042",
+      "query": "AF0022 is often confused",
       "relevant_doc_ids": [
-        "doc-42"
+        "doc-12"
       ],
       "expected_facts": [
-        "RESET-0042"
+        "RESET-0022"
+      ],
+      "forbidden_facts": [
+        "RESET-0122"
       ]
     },
     {
-      "query": "AF0043",
+      "query": "AF0023 is often confused",
       "relevant_doc_ids": [
-        "doc-43"
+        "doc-13"
       ],
       "expected_facts": [
-        "RESET-0043"
+        "RESET-0023"
+      ],
+      "forbidden_facts": [
+        "RESET-0123"
       ]
     },
     {
-      "query": "AF0044",
+      "query": "AF0024 is often confused",
       "relevant_doc_ids": [
-        "doc-44"
+        "doc-14"
       ],
       "expected_facts": [
-        "RESET-0044"
+        "RESET-0024"
+      ],
+      "forbidden_facts": [
+        "RESET-0124"
       ]
     },
     {
-      "query": "AF0045",
+      "query": "AF0025 is often confused",
       "relevant_doc_ids": [
-        "doc-45"
+        "doc-15"
       ],
       "expected_facts": [
-        "RESET-0045"
+        "RESET-0025"
+      ],
+      "forbidden_facts": [
+        "RESET-0125"
       ]
     },
     {
-      "query": "AF0046",
+      "query": "AF0026 is often confused",
       "relevant_doc_ids": [
-        "doc-46"
+        "doc-16"
       ],
       "expected_facts": [
-        "RESET-0046"
+        "RESET-0026"
+      ],
+      "forbidden_facts": [
+        "RESET-0126"
       ]
     },
     {
-      "query": "AF0047",
+      "query": "AF0027 is often confused",
       "relevant_doc_ids": [
-        "doc-47"
+        "doc-17"
       ],
       "expected_facts": [
-        "RESET-0047"
+        "RESET-0027"
+      ],
+      "forbidden_facts": [
+        "RESET-0127"
       ]
     },
     {
-      "query": "AF0048",
+      "query": "AF0028 is often confused",
       "relevant_doc_ids": [
-        "doc-48"
+        "doc-18"
       ],
       "expected_facts": [
-        "RESET-0048"
+        "RESET-0028"
+      ],
+      "forbidden_facts": [
+        "RESET-0128"
       ]
     },
     {
-      "query": "AF0049",
+      "query": "AF0029 is often confused",
       "relevant_doc_ids": [
-        "doc-49"
+        "doc-19"
       ],
       "expected_facts": [
-        "RESET-0049"
+        "RESET-0029"
+      ],
+      "forbidden_facts": [
+        "RESET-0129"
       ]
     },
     {
-      "query": "AF0050",
+      "query": "AF0030 is often confused",
       "relevant_doc_ids": [
-        "doc-50"
+        "doc-20"
       ],
       "expected_facts": [
-        "RESET-0050"
+        "RESET-0030"
+      ],
+      "forbidden_facts": [
+        "RESET-0130"
       ]
     }
   ]

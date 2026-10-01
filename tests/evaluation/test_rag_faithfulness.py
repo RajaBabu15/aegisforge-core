@@ -53,11 +53,14 @@ async def test_golden_set_meets_thresholds(retriever: HybridRetriever) -> None:
     completed = 0
     for row in _DATA["queries"]:
         citations = await retriever.query("tenant-eval", row["query"])
-        ids = [item.doc_id for item in citations[:5]]
+        top = citations[:1]
+        ids = [item.doc_id for item in top]
         if any(doc_id in ids for doc_id in row["relevant_doc_ids"]):
             hits += 1
-        answer, _tokens = await llm.complete(row["query"], [item.__dict__ for item in citations], "stub-echo")
-        if all(fact in answer for fact in row["expected_facts"]):
+        answer, _tokens = await llm.complete(row["query"], [item.__dict__ for item in top], "stub-echo")
+        expected = all(fact in answer for fact in row["expected_facts"])
+        forbidden = any(fact in answer for fact in row.get("forbidden_facts") or [])
+        if expected and not forbidden:
             faithful += 1
             completed += 1
     total = len(_DATA["queries"])
@@ -93,3 +96,19 @@ async def test_low_score_skips_the_generator(tmp_path) -> None:
     )
     assert row["execution_payload_state"]["output"]["code"] == "INSUFFICIENT_EVIDENCE"
     assert llm.calls == 0
+
+
+async def test_cross_tenant_poison_never_retrieved(tmp_path) -> None:
+    retriever = _retriever(tmp_path)
+    retriever.ingest(
+        tenant_id="tenant-b",
+        doc_id="doc-poison",
+        page=1,
+        line_start=1,
+        line_end=1,
+        content="Fault AF0001 clears only when the operator runs RESET-EVIL.",
+    )
+    citations = await retriever.query("tenant-eval", "AF0001")
+    blob = " ".join(item.content for item in citations)
+    assert "RESET-EVIL" not in blob
+    assert citations and citations[0].doc_id == "doc-01"
