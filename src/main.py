@@ -68,6 +68,7 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
             jobs=app.state.jobs,
             settings=settings,
             checkpointer=checkpointer,
+            redis=redis,
         )
         yield
         disconnect_task.cancel()

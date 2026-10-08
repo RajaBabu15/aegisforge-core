@@ -31,15 +31,17 @@ class WFState(TypedDict, total=False):
     skip_llm: bool
     output: Any
     version: str
+    verification: dict
 
 
 class WorkflowEngine:
-    def __init__(self, *, tools: ToolRegistry, retrieval, llm, jobs, settings, checkpointer=None) -> None:
+    def __init__(self, *, tools: ToolRegistry, retrieval, llm, jobs, settings, checkpointer=None, redis=None) -> None:
         self.tools = tools
         self.retrieval = retrieval
         self.llm = llm
         self.jobs = jobs
         self.settings = settings
+        self.redis = redis
         self.checkpointer = checkpointer or MemorySaver()
         self.graph = self._compile()
 
@@ -100,10 +102,7 @@ class WorkflowEngine:
         config = {"configurable": {"thread_id": job_id}}
         with self._workflow_span(current.get("trace_id") or ""):
             await self.graph.ainvoke(Command(resume=decision), config)
-        row = await self._persist(session, job_id, config)
-        if decision == "REJECTED":
-            await self._audit(session, row, "DENY", "HUMAN_REJECTED")
-        return row
+        return await self._persist(session, job_id, config)
 
     async def _plan(self, state: WFState) -> dict:
         if "plan" in state.get("steps", []):
@@ -159,15 +158,30 @@ class WorkflowEngine:
         result = await self.tools.invoke(
             state["tool_name"], {"summary": state["task"]}, state.get("scopes", []), state.get("tenant_id", "")
         )
+        verification = decide_verification(
+            tool_name=state["tool_name"],
+            tool_result=result,
+            citations=state.get("citations") or [],
+            scopes=state.get("scopes") or [],
+            tools=self.tools,
+        )
         return {
             "phase": "VERIFY",
             "tool_result": result,
+            "verification": verification,
             "steps": list(state.get("steps", [])) + ["verify"],
         }
 
     async def _respond(self, state: WFState) -> dict:
         if "respond" in state.get("steps", []):
             return {}
+        verification = state.get("verification") or {}
+        if verification.get("decision") == "DENY":
+            return {
+                "phase": "RESPOND",
+                "output": {"code": "VERIFICATION_DENIED", "verification": verification},
+                "steps": list(state.get("steps", [])) + ["respond"],
+            }
         if state.get("citations"):
             answer, tokens = await infer(self.llm, state["task"], state["citations"], self.settings.llm_model)
             TOKEN_CONSUMPTION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc(tokens)
@@ -207,12 +221,11 @@ class WorkflowEngine:
         values = dict(snapshot.values)
         suspended = bool(getattr(snapshot, "interrupts", None))
         phase = "SUSPEND" if suspended else values.get("phase", "START")
-        if phase == "CRITICAL_SECURITY_DENIAL":
-            await self._audit(session, {"user_id": values.get("user_id"), "tenant_id": values.get("tenant_id"), "id": job_id, "scopes": values.get("scopes", [])}, "DENY", "SCOPE")
         row = {
             "id": job_id,
             "tenant_id": values.get("tenant_id"),
             "user_id": values.get("user_id"),
+            "scopes": list(values.get("scopes") or []),
             "trace_id": values.get("trace_id", ""),
             "workflow_definition_version": values.get("version", self.settings.workflow_version),
             "current_phase": phase,
@@ -221,6 +234,7 @@ class WorkflowEngine:
                 "output": values.get("output"),
                 "tool_name": values.get("tool_name"),
                 "tool_result": values.get("tool_result"),
+                "verification": values.get("verification"),
                 "steps": values.get("steps", []),
             },
             "is_suspended_for_approval": suspended,
@@ -229,6 +243,8 @@ class WorkflowEngine:
         await self.jobs.save(session, row)
         status = "awaiting_human_approval" if suspended else phase
         log.info("job=%s phase=%s status=%s trace_id=%s", job_id, phase, status, row["trace_id"])
+        await self._audit_phase(session, row)
+        await self._publish_job_event(row, status)
         _record_outcome(row)
         return row
 
@@ -238,6 +254,43 @@ class WorkflowEngine:
         if context is None:
             return tracer().start_as_current_span("workflow.execute")
         return tracer().start_as_current_span("workflow.execute", context=context)
+
+    async def _audit_phase(self, session, row: dict) -> None:
+        phase = row.get("current_phase") or ""
+        if row.get("is_suspended_for_approval"):
+            return
+        payload = row.get("execution_payload_state") or {}
+        output = payload.get("output") if isinstance(payload, dict) else None
+        code = str((output or {}).get("code") or "") if isinstance(output, dict) else ""
+        if phase == "CRITICAL_SECURITY_DENIAL":
+            await self._audit(session, row, "DENY", "SCOPE")
+        elif phase == "CANCELLED":
+            await self._audit(session, row, "DENY", "HUMAN_REJECTED")
+        elif phase != "RESPOND":
+            return
+        elif code in {"INSUFFICIENT_EVIDENCE", "VERIFICATION_DENIED", "BUDGET_EXCEEDED"}:
+            await self._audit(session, row, "DENY", code)
+        else:
+            await self._audit(session, row, "ALLOW", "VERIFIED")
+
+    async def _publish_job_event(self, row: dict, status: str) -> None:
+        if self.redis is None:
+            return
+        payload = row.get("execution_payload_state") or {}
+        body = _json(
+            {
+                "job_id": str(row.get("id")),
+                "tenant_id": str(row.get("tenant_id") or ""),
+                "phase": row.get("current_phase"),
+                "status": status,
+                "tool_name": payload.get("tool_name") if isinstance(payload, dict) else None,
+                "trace_id": row.get("trace_id") or "",
+            }
+        )
+        try:
+            await self.redis.publish("af:job.events", body)
+        except Exception:
+            log.warning("job event publish failed job=%s", row.get("id"))
 
     async def _audit(self, session, row: dict, decision: str, reason: str) -> None:
         if session is None or not hasattr(session, "execute"):
@@ -369,6 +422,27 @@ class MemoryJobStore:
         return list(reversed(list(self.rows.values())))[:cap]
 
 
+def decide_verification(
+    *,
+    tool_name: str,
+    tool_result: dict | None,
+    citations: list,
+    scopes: list[str],
+    tools: ToolRegistry,
+) -> dict:
+    """Allow or deny a tool result from retrieval and scope signals."""
+    signals = {
+        "tool": tool_name,
+        "citation_count": len(citations or []),
+        "has_tool_result": bool(tool_result),
+    }
+    if not tools.allows(tool_name, scopes):
+        return {"decision": "DENY", "reason": "SCOPE", "signals": signals}
+    if not tool_result:
+        return {"decision": "DENY", "reason": "TOOL_EMPTY", "signals": signals}
+    return {"decision": "ALLOW", "reason": "VERIFIED", "signals": signals}
+
+
 def _json(value) -> str:
     import json
 
@@ -408,6 +482,8 @@ def _record_outcome(row: dict) -> None:
         outcome = "human_rejected"
     elif code == "INSUFFICIENT_EVIDENCE":
         outcome = "insufficient_evidence"
+    elif code == "VERIFICATION_DENIED":
+        outcome = "verification_denied"
     elif code == "BUDGET_EXCEEDED":
         outcome = "budget_exceeded"
     elif phase == "RESPOND":
