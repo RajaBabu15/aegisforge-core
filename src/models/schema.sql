@@ -486,7 +486,7 @@ REVOKE UPDATE, DELETE ON system_audit_ledger FROM aegis_app;
 GRANT USAGE, SELECT ON SEQUENCE system_audit_ledger_id_seq TO aegis_app;
 
 -- NOTE on ledger immutability: schema.sql is applied via MIGRATOR_DATABASE_URL, which in
--- every environment here (docker/local.env, CI, the pgserver test fixture) authenticates as
+-- every environment here (docker/local.env, CI) authenticates as
 -- the platform's actual Postgres superuser, not as the aegis_migrator role below -- and
 -- aegis_migrator is itself created SUPERUSER too. REVOKE is a no-op against a superuser:
 -- verified empirically (REVOKE UPDATE/DELETE FROM a superuser role, then UPDATE/DELETE as

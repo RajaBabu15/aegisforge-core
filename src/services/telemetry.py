@@ -3,7 +3,7 @@ from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags, set_s
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from prometheus_client import Counter, Gauge, Histogram
+from prometheus_client import Counter, Histogram
 
 TOKEN_CONSUMPTION = Counter(
     "aegisforge_token_consumption_total",
@@ -19,11 +19,6 @@ TOOL_DURATION = Histogram(
     "aegisforge_tool_execution_duration_seconds",
     "Sandboxed tool execution time.",
     ["tool", "outcome"],
-)
-EVAL_SCORE = Gauge(
-    "aegisforge_agent_evaluation_score",
-    "Offline evaluation scores.",
-    ["metric"],
 )
 
 _PROVIDER_READY = False

@@ -97,7 +97,7 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
 
     @app.get("/ready")
     async def ready(request: Request) -> JSONResponse:
-        checks = {"postgres": "down", "redis": "down"}
+        checks = {"postgres": "down", "redis": "down", "qdrant": "down"}
         try:
             async with request.app.state.session_factory() as session:
                 await session.execute(text("SELECT 1"))
@@ -109,11 +109,22 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
             checks["redis"] = "ok"
         except Exception:
             pass
-        ok = checks["postgres"] == "ok" and checks["redis"] == "ok"
+        try:
+            checks["qdrant"] = request.app.state.retrieval.ping()
+        except Exception:
+            pass
+        settings = request.app.state.settings
+        ok = all(value == "ok" for value in checks.values())
         return JSONResponse(
             {
                 "status": "ok" if ok else "down",
                 "checks": checks,
+                "components": {
+                    "sparse": "tantivy",
+                    "dense": "qdrant",
+                    "embedder": settings.embedder,
+                    "reranker": settings.reranker,
+                },
                 "trace_id": getattr(request.state, "trace_id", ""),
             },
             status_code=200 if ok else 503,

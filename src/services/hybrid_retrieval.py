@@ -88,6 +88,10 @@ class HybridRetriever:
             vectors_config=VectorParams(size=_DIM, distance=Distance.COSINE),
         )
 
+    def ping(self) -> str:
+        self.qdrant.collection_exists("chunks")
+        return "ok"
+
     def _embed(self, text: str) -> list[float]:
         if self.embedder == "fastembed":
             from fastembed import TextEmbedding
