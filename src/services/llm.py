@@ -53,6 +53,12 @@ def build_llm(settings):
     return StubLLM()
 
 
+def answer_is_grounded(answer: str, chunks: list[dict]) -> bool:
+    corpus = "\n".join(str(chunk.get("content", "")) for chunk in chunks)
+    text = answer.strip()
+    return bool(text) and text in corpus
+
+
 async def infer(llm, task: str, chunks: list[dict], model: str) -> tuple[str, int]:
     with tracer().start_as_current_span("llm.infer"):
         return await llm.complete(task, chunks, model)

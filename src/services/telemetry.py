@@ -10,6 +10,11 @@ TOKEN_CONSUMPTION = Counter(
     "LLM tokens recorded for a tenant and model.",
     ["tenant_id", "model"],
 )
+HALLUCINATION = Counter(
+    "aegisforge_llm_ungrounded_total",
+    "Generator answers that were not fully contained in retrieved chunks.",
+    ["tenant_id", "model"],
+)
 TOOL_DURATION = Histogram(
     "aegisforge_tool_execution_duration_seconds",
     "Sandboxed tool execution time.",

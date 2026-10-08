@@ -3,6 +3,32 @@ import pytest
 from tests.unit.test_token_rotation import _login
 
 
+async def test_ready_checks_postgres_and_redis(client) -> None:
+    response = await client.get("/ready")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["checks"] == {"postgres": "ok", "redis": "ok"}
+    assert "trace_id" in body
+
+
+async def test_ready_returns_503_when_postgres_or_redis_is_down(client, app) -> None:
+    class DeadFactory:
+        def __call__(self):
+            raise ConnectionError("postgres down")
+
+    async def dead_ping():
+        raise ConnectionError("redis down")
+
+    app.state.session_factory = DeadFactory()
+    app.state.redis.ping = dead_ping
+    response = await client.get("/ready")
+    assert response.status_code == 503
+    body = response.json()
+    assert body["status"] == "down"
+    assert body["checks"] == {"postgres": "down", "redis": "down"}
+
+
 @pytest.mark.integration
 async def test_console_page_and_buttons(client) -> None:
     page = await client.get("/")

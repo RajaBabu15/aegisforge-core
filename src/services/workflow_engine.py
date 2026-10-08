@@ -6,8 +6,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 from sqlalchemy import text
 
-from src.services.llm import infer
-from src.services.telemetry import TOKEN_CONSUMPTION, parent_context, tracer
+from src.services.llm import answer_is_grounded, infer
+from src.services.telemetry import HALLUCINATION, TOKEN_CONSUMPTION, parent_context, tracer
 from src.services.tools_sandbox import ToolRegistry
 
 log = logging.getLogger("aegisforge.workflow")
@@ -171,6 +171,8 @@ class WorkflowEngine:
         if state.get("citations"):
             answer, tokens = await infer(self.llm, state["task"], state["citations"], self.settings.llm_model)
             TOKEN_CONSUMPTION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc(tokens)
+            if not answer_is_grounded(answer, state["citations"]):
+                HALLUCINATION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc()
             output = {"answer": answer, "citations": state["citations"], "tool_result": state.get("tool_result")}
             extra = tokens / 1_000_000
         else:

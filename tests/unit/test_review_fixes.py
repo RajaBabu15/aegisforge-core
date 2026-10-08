@@ -1,8 +1,14 @@
 from src.core.config import Settings
 from src.services.identity import Principal
-from src.services.llm import StubLLM
+from src.services.llm import StubLLM, answer_is_grounded
 from src.services.tools_sandbox import ToolRegistry
 from src.services.workflow_engine import MemoryJobStore, WorkflowEngine
+
+
+def test_answer_is_grounded_only_when_the_text_is_in_the_chunks() -> None:
+    chunks = [{"content": "alpha beta"}]
+    assert answer_is_grounded("alpha beta", chunks)
+    assert not answer_is_grounded("gamma", chunks)
 
 
 def test_tool_choice_uses_only_the_first_line() -> None:

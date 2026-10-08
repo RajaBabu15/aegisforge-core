@@ -6,7 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from redis.asyncio import Redis
-from starlette.responses import Response
+from sqlalchemy import text
+from starlette.responses import JSONResponse, Response
 
 from src.api.middleware.otel_telemetry import install_telemetry
 from src.api.middleware.security_isolation import install_security
@@ -93,6 +94,30 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
     @app.get("/health")
     async def health(request: Request) -> dict:
         return {"status": "ok", "trace_id": getattr(request.state, "trace_id", "")}
+
+    @app.get("/ready")
+    async def ready(request: Request) -> JSONResponse:
+        checks = {"postgres": "down", "redis": "down"}
+        try:
+            async with request.app.state.session_factory() as session:
+                await session.execute(text("SELECT 1"))
+            checks["postgres"] = "ok"
+        except Exception:
+            pass
+        try:
+            await request.app.state.redis.ping()
+            checks["redis"] = "ok"
+        except Exception:
+            pass
+        ok = checks["postgres"] == "ok" and checks["redis"] == "ok"
+        return JSONResponse(
+            {
+                "status": "ok" if ok else "down",
+                "checks": checks,
+                "trace_id": getattr(request.state, "trace_id", ""),
+            },
+            status_code=200 if ok else 503,
+        )
 
     @app.get("/metrics")
     async def metrics() -> Response:

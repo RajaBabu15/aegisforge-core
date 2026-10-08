@@ -9,7 +9,7 @@ from src.services.identity import Principal
 from src.services.telemetry import tracer
 
 _PUBLIC_PREFIXES = ("/oauth/", "/docs", "/redoc")
-_PUBLIC_EXACT = {"/", "/health", "/metrics", "/openapi.json", "/ui/api/login"}
+_PUBLIC_EXACT = {"/", "/health", "/ready", "/metrics", "/openapi.json", "/ui/api/login"}
 
 
 def install_security(app) -> None:
@@ -17,7 +17,7 @@ def install_security(app) -> None:
     async def isolate(request, call_next):
         request.state.after_commit = []
         path = request.url.path
-        if path in {"/health", "/metrics"}:
+        if path in {"/health", "/ready", "/metrics"}:
             return await call_next(request)
         factory = request.app.state.session_factory
         session = factory()
