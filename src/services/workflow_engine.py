@@ -7,7 +7,7 @@ from langgraph.types import Command, interrupt
 from sqlalchemy import text
 
 from src.services.llm import answer_is_grounded, infer
-from src.services.telemetry import HALLUCINATION, TOKEN_CONSUMPTION, parent_context, tracer
+from src.services.telemetry import AGENT_OUTCOME, HALLUCINATION, TOKEN_CONSUMPTION, parent_context, tracer
 from src.services.tools_sandbox import ToolRegistry
 
 log = logging.getLogger("aegisforge.workflow")
@@ -229,6 +229,7 @@ class WorkflowEngine:
         await self.jobs.save(session, row)
         status = "awaiting_human_approval" if suspended else phase
         log.info("job=%s phase=%s status=%s trace_id=%s", job_id, phase, status, row["trace_id"])
+        _record_outcome(row)
         return row
 
     @staticmethod
@@ -304,6 +305,23 @@ class JobStore:
     async def get_for_update(self, session, job_id: str) -> dict | None:
         return await self._select(session, job_id, for_update=True)
 
+    async def list_recent(self, session, *, limit: int = 50) -> list[dict]:
+        cap = max(1, min(int(limit), 100))
+        found = await session.execute(
+            text(
+                """
+                SELECT id, tenant_id, user_id, trace_id, workflow_definition_version,
+                       current_phase, execution_payload_state, is_suspended_for_approval,
+                       accumulated_token_cost
+                FROM agent_workflow_state
+                ORDER BY updated_at DESC
+                LIMIT :limit
+                """
+            ),
+            {"limit": cap},
+        )
+        return [_row(item) for item in found.mappings().all()]
+
     async def _select(self, session, job_id: str, *, for_update: bool) -> dict | None:
         query = (
             """
@@ -327,17 +345,7 @@ class JobStore:
         row = found.mappings().first()
         if row is None:
             return None
-        return {
-            "id": str(row["id"]),
-            "tenant_id": str(row["tenant_id"]),
-            "user_id": str(row["user_id"]),
-            "trace_id": row["trace_id"],
-            "workflow_definition_version": row["workflow_definition_version"],
-            "current_phase": row["current_phase"],
-            "execution_payload_state": row["execution_payload_state"],
-            "is_suspended_for_approval": row["is_suspended_for_approval"],
-            "accumulated_token_cost": float(row["accumulated_token_cost"]),
-        }
+        return _row(row)
 
 
 class MemoryJobStore:
@@ -355,8 +363,56 @@ class MemoryJobStore:
     async def get_for_update(self, session, job_id: str) -> dict | None:
         return await self.get(session, job_id)
 
+    async def list_recent(self, session, *, limit: int = 50) -> list[dict]:
+        del session
+        cap = max(1, min(int(limit), 100))
+        return list(reversed(list(self.rows.values())))[:cap]
+
 
 def _json(value) -> str:
     import json
 
     return json.dumps(value)
+
+
+def _row(row) -> dict:
+    return {
+        "id": str(row["id"]),
+        "tenant_id": str(row["tenant_id"]),
+        "user_id": str(row["user_id"]),
+        "trace_id": row["trace_id"],
+        "workflow_definition_version": row["workflow_definition_version"],
+        "current_phase": row["current_phase"],
+        "execution_payload_state": row["execution_payload_state"],
+        "is_suspended_for_approval": row["is_suspended_for_approval"],
+        "accumulated_token_cost": float(row["accumulated_token_cost"]),
+    }
+
+
+def _record_outcome(row: dict) -> None:
+    tenant = str(row.get("tenant_id") or "unknown")
+    if row.get("is_suspended_for_approval"):
+        AGENT_OUTCOME.labels(tenant_id=tenant, outcome="awaiting_approval").inc()
+        return
+    phase = row.get("current_phase") or ""
+    payload = row.get("execution_payload_state") or {}
+    if isinstance(payload, str):
+        import json
+
+        payload = json.loads(payload)
+    output = payload.get("output") if isinstance(payload, dict) else None
+    code = str((output or {}).get("code") or "") if isinstance(output, dict) else ""
+    if phase == "CRITICAL_SECURITY_DENIAL":
+        outcome = "scope_denied"
+    elif phase == "CANCELLED":
+        outcome = "human_rejected"
+    elif code == "INSUFFICIENT_EVIDENCE":
+        outcome = "insufficient_evidence"
+    elif code == "BUDGET_EXCEEDED":
+        outcome = "budget_exceeded"
+    elif phase == "RESPOND":
+        outcome = "completed"
+    else:
+        return
+    AGENT_OUTCOME.labels(tenant_id=tenant, outcome=outcome).inc()
+

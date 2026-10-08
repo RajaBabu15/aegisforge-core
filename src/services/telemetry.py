@@ -15,6 +15,11 @@ HALLUCINATION = Counter(
     "Generator answers that were not fully contained in retrieved chunks.",
     ["tenant_id", "model"],
 )
+AGENT_OUTCOME = Counter(
+    "aegisforge_agent_outcome_total",
+    "Agent job terminal or gate outcomes for operator governance.",
+    ["tenant_id", "outcome"],
+)
 TOOL_DURATION = Histogram(
     "aegisforge_tool_execution_duration_seconds",
     "Sandboxed tool execution time.",

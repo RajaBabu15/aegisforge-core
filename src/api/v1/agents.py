@@ -1,7 +1,8 @@
 import json
 import uuid
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
+from sqlalchemy import text
 
 from src.core.errors import AegisError
 from src.core.security import APPROVAL_WINDOW_SECONDS, sha256_hex, verify_approval
@@ -37,6 +38,12 @@ async def start_job(request: Request, payload: JobCreate) -> JobView:
         trace_id=getattr(request.state, "trace_id", ""),
     )
     return _view(row)
+
+
+@router.get("/agents/jobs")
+async def list_jobs(request: Request, limit: int = Query(50, ge=1, le=100)) -> dict:
+    rows = await request.app.state.jobs.list_recent(request.state.session, limit=limit)
+    return {"jobs": [_view(row) for row in rows]}
 
 
 @router.get("/agents/jobs/{job_id}", response_model=JobView)
