@@ -3,7 +3,7 @@ import json
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from redis.asyncio import Redis
 from starlette.responses import Response
@@ -91,8 +91,8 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
     app.include_router(sessions.router)
 
     @app.get("/health")
-    async def health() -> dict:
-        return {"status": "ok"}
+    async def health(request: Request) -> dict:
+        return {"status": "ok", "trace_id": getattr(request.state, "trace_id", "")}
 
     @app.get("/metrics")
     async def metrics() -> Response:
