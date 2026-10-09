@@ -18,7 +18,3 @@ curl -fsS http://localhost:8000/health
 ```
 
 API: `http://localhost:8000/docs`
-
-```bash
-python scripts/simulate_replay_attack.py
-```

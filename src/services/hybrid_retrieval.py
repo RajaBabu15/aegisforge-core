@@ -1,5 +1,4 @@
 import hashlib
-import logging
 import math
 import re
 import threading
@@ -11,11 +10,10 @@ import tantivy
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
 
-from src.services.telemetry import tracer
+
 
 _TOKEN = re.compile(r"[a-z0-9]+")
 _DIM = 384
-_log = logging.getLogger("aegisforge.retrieval")
 
 
 class RetrievalSideError(Exception):
@@ -87,10 +85,6 @@ class HybridRetriever:
         self.meta: dict[str, dict] = {}
         self.embedder = settings.embedder
         self.reranker = settings.reranker
-        if self.embedder == "hash":
-            _log.warning(
-                "AEGIS_EMBEDDER=hash is a bag-of-tokens demo default; set AEGIS_EMBEDDER=fastembed before a non-demo deploy"
-            )
 
     def _ensure_collection(self) -> None:
         if self.qdrant.collection_exists("chunks"):
@@ -344,26 +338,24 @@ class HybridRetriever:
     async def query(self, tenant_id: str, query: str, session=None) -> list[Citation]:
         import asyncio
 
-        with tracer().start_as_current_span("retrieval.rrf"):
-            dense, sparse = await asyncio.gather(
-                asyncio.to_thread(self._dense, tenant_id, query),
-                asyncio.to_thread(self._sparse, tenant_id, query),
-            )
+        dense, sparse = await asyncio.gather(
+            asyncio.to_thread(self._dense, tenant_id, query),
+            asyncio.to_thread(self._sparse, tenant_id, query),
+        )
         fused = rrf([dense, sparse], self.k)[: self.candidate_limit]
-        with tracer().start_as_current_span("retrieval.rerank"):
-            ranked: list[Citation] = []
-            for chunk_id, _fusion in fused:
-                meta = self.meta.get(chunk_id)
-                if meta is None and session is not None:
-                    meta = await self._meta_from_db(session, chunk_id)
-                    if meta is not None:
-                        self.meta[chunk_id] = meta
-                if meta is None or meta["tenant_id"] != tenant_id:
-                    continue
-                score = self._score(query, meta["content"])
-                if score < self.min_score:
-                    continue
-                ranked.append(Citation(score=score, **{key: meta[key] for key in ("doc_id", "page", "line_range", "sha256", "content", "chunk_id")}))
+        ranked: list[Citation] = []
+        for chunk_id, _fusion in fused:
+            meta = self.meta.get(chunk_id)
+            if meta is None and session is not None:
+                meta = await self._meta_from_db(session, chunk_id)
+                if meta is not None:
+                    self.meta[chunk_id] = meta
+            if meta is None or meta["tenant_id"] != tenant_id:
+                continue
+            score = self._score(query, meta["content"])
+            if score < self.min_score:
+                continue
+            ranked.append(Citation(score=score, **{key: meta[key] for key in ("doc_id", "page", "line_range", "sha256", "content", "chunk_id")}))
         ranked.sort(key=lambda item: item.score, reverse=True)
         return ranked
 

@@ -57,10 +57,6 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("AEGIS_OAUTH_REDIRECT_URI", "OAUTH_REDIRECT_URI"),
     )
     workflow_version: str = "2.0.0"
-    langfuse_host: str | None = None
-    langfuse_public_key: str | None = None
-    langfuse_secret_key: str | None = None
-    otlp_endpoint: str | None = Field(None, validation_alias=AliasChoices("AEGIS_OTLP_ENDPOINT", "OTLP_ENDPOINT"))
     bootstrap_domain: str = Field(
         "demo.aegisforge.local", validation_alias=AliasChoices("AEGIS_BOOTSTRAP_DOMAIN", "BOOTSTRAP_DOMAIN")
     )

@@ -485,17 +485,6 @@ GRANT SELECT, INSERT ON system_audit_ledger TO aegis_app;
 REVOKE UPDATE, DELETE ON system_audit_ledger FROM aegis_app;
 GRANT USAGE, SELECT ON SEQUENCE system_audit_ledger_id_seq TO aegis_app;
 
--- NOTE on ledger immutability: schema.sql is applied via MIGRATOR_DATABASE_URL, which in
--- every environment here (docker/local.env, CI) authenticates as
--- the platform's actual Postgres superuser, not as the aegis_migrator role below -- and
--- aegis_migrator is itself created SUPERUSER too. REVOKE is a no-op against a superuser:
--- verified empirically (REVOKE UPDATE/DELETE FROM a superuser role, then UPDATE/DELETE as
--- that role, both still succeed -- Postgres skips ACL checks entirely for superusers), so
--- there is deliberately no REVOKE-from-migrator statement here pretending to restrict it.
--- Real audit-ledger tamper-proofing against the deploy-time credential would require that
--- credential to not be a superuser at all (a separate bootstrap-vs-steady-state credential
--- split) -- a larger, deliberately deferred change.
-
 GRANT EXECUTE ON FUNCTION
     auth_find_user_by_email(text),
     auth_save_code(text, text, uuid, uuid, text, text, text, text[], timestamptz),

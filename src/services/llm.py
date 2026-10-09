@@ -1,7 +1,4 @@
 import httpx
-from opentelemetry.propagate import inject
-
-from src.services.telemetry import tracer
 
 
 class StubLLM:
@@ -25,7 +22,6 @@ class OpenAICompatibleLLM:
         self.calls += 1
         context = "\n".join(chunk["content"] for chunk in chunks)
         headers = {"Authorization": f"Bearer {self.api_key}"}
-        inject(headers)
         async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(
                 f"{self.base_url}/chat/completions",
@@ -60,5 +56,4 @@ def answer_is_grounded(answer: str, chunks: list[dict]) -> bool:
 
 
 async def infer(llm, task: str, chunks: list[dict], model: str) -> tuple[str, int]:
-    with tracer().start_as_current_span("llm.infer"):
-        return await llm.complete(task, chunks, model)
+    return await llm.complete(task, chunks, model)

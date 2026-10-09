@@ -9,7 +9,6 @@ from sqlalchemy import text
 
 from src.services.identity import scopes_for_role
 from src.services.llm import answer_is_grounded, infer
-from src.services.telemetry import AGENT_OUTCOME, HALLUCINATION, TOKEN_CONSUMPTION, parent_context, tracer
 from src.services.tools_sandbox import ToolRegistry
 
 log = logging.getLogger("aegisforge.workflow")
@@ -37,13 +36,12 @@ class WFState(TypedDict, total=False):
 
 
 class WorkflowEngine:
-    def __init__(self, *, tools: ToolRegistry, retrieval, llm, jobs, settings, checkpointer=None, redis=None) -> None:
+    def __init__(self, *, tools: ToolRegistry, retrieval, llm, jobs, settings, checkpointer=None) -> None:
         self.tools = tools
         self.retrieval = retrieval
         self.llm = llm
         self.jobs = jobs
         self.settings = settings
-        self.redis = redis
         self.checkpointer = checkpointer or MemorySaver()
         self.graph = self._compile()
 
@@ -89,8 +87,7 @@ class WorkflowEngine:
             "skip_llm": False,
         }
         config = {"configurable": {"thread_id": job_id}}
-        with self._workflow_span(trace_id):
-            await self.graph.ainvoke(state, config)
+        await self.graph.ainvoke(state, config)
         return await self._persist(session, job_id, config)
 
     async def resume(self, session, job_id: str, decision: str) -> dict:
@@ -105,8 +102,7 @@ class WorkflowEngine:
         if blocked:
             return await self._deny_resume(session, current, blocked)
         config = {"configurable": {"thread_id": job_id}}
-        with self._workflow_span(current.get("trace_id") or ""):
-            await self.graph.ainvoke(Command(resume=decision), config)
+        await self.graph.ainvoke(Command(resume=decision), config)
         return await self._persist(session, job_id, config)
 
     async def _resume_blocked(self, session, current: dict) -> str | None:
@@ -148,8 +144,6 @@ class WorkflowEngine:
         }
         await self.jobs.save(session, row)
         await self._audit_phase(session, row)
-        await self._publish_job_event(row, "CRITICAL_SECURITY_DENIAL")
-        _record_outcome(row)
         return row
 
     async def _plan(self, state: WFState) -> dict:
@@ -232,10 +226,9 @@ class WorkflowEngine:
             }
         if state.get("citations"):
             answer, tokens = await infer(self.llm, state["task"], state["citations"], self.settings.llm_model)
-            TOKEN_CONSUMPTION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc(tokens)
-            if not answer_is_grounded(answer, state["citations"]):
-                HALLUCINATION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc()
             output = {"answer": answer, "citations": state["citations"], "tool_result": state.get("tool_result")}
+            if not answer_is_grounded(answer, state["citations"]):
+                output["ungrounded"] = True
             extra = tokens / 1_000_000
         else:
             output = {"tool_result": state.get("tool_result"), "citations": []}
@@ -292,16 +285,7 @@ class WorkflowEngine:
         status = "awaiting_human_approval" if suspended else phase
         log.info("job=%s phase=%s status=%s trace_id=%s", job_id, phase, status, row["trace_id"])
         await self._audit_phase(session, row)
-        await self._publish_job_event(row, status)
-        _record_outcome(row)
         return row
-
-    @staticmethod
-    def _workflow_span(trace_id: str):
-        context = parent_context(trace_id)
-        if context is None:
-            return tracer().start_as_current_span("workflow.execute")
-        return tracer().start_as_current_span("workflow.execute", context=context)
 
     async def _audit_phase(self, session, row: dict) -> None:
         phase = row.get("current_phase") or ""
@@ -320,25 +304,6 @@ class WorkflowEngine:
             await self._audit(session, row, "DENY", code)
         else:
             await self._audit(session, row, "ALLOW", "VERIFIED")
-
-    async def _publish_job_event(self, row: dict, status: str) -> None:
-        if self.redis is None:
-            return
-        payload = row.get("execution_payload_state") or {}
-        body = _json(
-            {
-                "job_id": str(row.get("id")),
-                "tenant_id": str(row.get("tenant_id") or ""),
-                "phase": row.get("current_phase"),
-                "status": status,
-                "tool_name": payload.get("tool_name") if isinstance(payload, dict) else None,
-                "trace_id": row.get("trace_id") or "",
-            }
-        )
-        try:
-            await self.redis.publish("af:job.events", body)
-        except Exception:
-            log.warning("job event publish failed job=%s", row.get("id"))
 
     async def _audit(self, session, row: dict, decision: str, reason: str) -> None:
         if session is None or not hasattr(session, "execute"):
@@ -449,27 +414,6 @@ class JobStore:
         return _row(row)
 
 
-class MemoryJobStore:
-    def __init__(self) -> None:
-        self.rows: dict[str, dict] = {}
-
-    async def save(self, session, row: dict) -> None:
-        del session
-        self.rows[row["id"]] = row
-
-    async def get(self, session, job_id: str) -> dict | None:
-        del session
-        return self.rows.get(job_id)
-
-    async def get_for_update(self, session, job_id: str) -> dict | None:
-        return await self.get(session, job_id)
-
-    async def list_recent(self, session, *, limit: int = 50) -> list[dict]:
-        del session
-        cap = max(1, min(int(limit), 100))
-        return list(reversed(list(self.rows.values())))[:cap]
-
-
 def decide_verification(
     *,
     tool_name: str,
@@ -491,12 +435,6 @@ def decide_verification(
     return {"decision": "ALLOW", "reason": "VERIFIED", "signals": signals}
 
 
-def _json(value) -> str:
-    import json
-
-    return json.dumps(value)
-
-
 def _row(row) -> dict:
     return {
         "id": str(row["id"]),
@@ -509,34 +447,4 @@ def _row(row) -> dict:
         "is_suspended_for_approval": row["is_suspended_for_approval"],
         "accumulated_token_cost": float(row["accumulated_token_cost"]),
     }
-
-
-def _record_outcome(row: dict) -> None:
-    tenant = str(row.get("tenant_id") or "unknown")
-    if row.get("is_suspended_for_approval"):
-        AGENT_OUTCOME.labels(tenant_id=tenant, outcome="awaiting_approval").inc()
-        return
-    phase = row.get("current_phase") or ""
-    payload = row.get("execution_payload_state") or {}
-    if isinstance(payload, str):
-        import json
-
-        payload = json.loads(payload)
-    output = payload.get("output") if isinstance(payload, dict) else None
-    code = str((output or {}).get("code") or "") if isinstance(output, dict) else ""
-    if phase == "CRITICAL_SECURITY_DENIAL":
-        outcome = "scope_denied"
-    elif phase == "CANCELLED":
-        outcome = "human_rejected"
-    elif code == "INSUFFICIENT_EVIDENCE":
-        outcome = "insufficient_evidence"
-    elif code == "VERIFICATION_DENIED":
-        outcome = "verification_denied"
-    elif code == "BUDGET_EXCEEDED":
-        outcome = "budget_exceeded"
-    elif phase == "RESPOND":
-        outcome = "completed"
-    else:
-        return
-    AGENT_OUTCOME.labels(tenant_id=tenant, outcome=outcome).inc()
 

@@ -6,18 +6,18 @@ from starlette.responses import JSONResponse
 from src.core.errors import AegisError
 from src.core.security import decode_access_token, sha256_hex
 from src.services.identity import Principal
-from src.services.telemetry import tracer
 
 _PUBLIC_PREFIXES = ("/oauth/", "/docs", "/redoc")
-_PUBLIC_EXACT = {"/health", "/ready", "/metrics", "/openapi.json"}
+_PUBLIC_EXACT = {"/health", "/ready", "/openapi.json"}
 
 
 def install_security(app) -> None:
     @app.middleware("http")
     async def isolate(request, call_next):
         request.state.after_commit = []
+        request.state.trace_id = uuid.uuid4().hex
         path = request.url.path
-        if path in {"/health", "/ready", "/metrics"}:
+        if path in {"/health", "/ready"}:
             return await call_next(request)
         factory = request.app.state.session_factory
         session = factory()
@@ -25,8 +25,7 @@ def install_security(app) -> None:
         await session.begin()
         try:
             if not _is_public(path):
-                with tracer().start_as_current_span("iam.token_verify"):
-                    await _authenticate(request, session)
+                await _authenticate(request, session)
         except AegisError as exc:
             await session.rollback()
             await session.close()

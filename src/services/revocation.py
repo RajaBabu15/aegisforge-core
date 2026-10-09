@@ -1,4 +1,3 @@
-import json
 from typing import Any
 
 
@@ -7,7 +6,6 @@ class RevocationStore:
         self.redis = redis
         self.access_ttl_seconds = access_ttl_seconds
         self.family_ttl_seconds = family_ttl_seconds
-        self.on_revoke = None
 
     async def remember_access(self, user_id: str, jti: str) -> None:
         key = f"af:user:access:{user_id}"
@@ -24,18 +22,13 @@ class RevocationStore:
         return bool(family_hit or access_hit)
 
     async def revoke_families(self, user_id: str, family_ids: list[str], reason: str) -> None:
+        del reason
         access_key = f"af:user:access:{user_id}"
         pipe = self.redis.pipeline()
         for family_id in family_ids:
             pipe.set(f"af:family:revoked:{family_id}", "1", ex=self.family_ttl_seconds)
-        pipe.publish(
-            f"af:user:disconnect:{user_id}",
-            json.dumps({"user_id": user_id, "reason": reason}),
-        )
         await pipe.execute()
         await self._drain_access_set(access_key)
-        if self.on_revoke is not None:
-            await self.on_revoke(user_id, reason)
 
     async def _drain_access_set(self, access_key: str) -> None:
         while True:

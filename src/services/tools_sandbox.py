@@ -1,11 +1,9 @@
 import inspect
-import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from src.services.migrate import asyncpg_dsn
-from src.services.telemetry import TOOL_DURATION
 
 
 @dataclass
@@ -18,8 +16,6 @@ class Tool:
 
 @dataclass
 class ToolRegistry:
-    spy: list[str] = field(default_factory=list)
-    cursor_opened: int = 0
     tools: dict[str, Tool] = field(default_factory=dict)
     tool_sql_database_url: str | None = None
 
@@ -45,19 +41,11 @@ class ToolRegistry:
 
     async def invoke(self, name: str, args: dict, scopes: list[str], tenant_id: str) -> dict:
         tool = self.tools[name]
-        started = time.perf_counter()
         if not self.allows(name, scopes):
-            TOOL_DURATION.labels(tool=name, outcome="denied").observe(time.perf_counter() - started)
             raise PermissionError(name)
-        self.spy.append(name)
-        try:
-            result = tool.fn(args, tenant_id)
-            if inspect.isawaitable(result):
-                result = await result
-        except Exception:
-            TOOL_DURATION.labels(tool=name, outcome="error").observe(time.perf_counter() - started)
-            raise
-        TOOL_DURATION.labels(tool=name, outcome="ok").observe(time.perf_counter() - started)
+        result = tool.fn(args, tenant_id)
+        if inspect.isawaitable(result):
+            result = await result
         return result
 
     def _file_ticket(self, args: dict, tenant_id: str) -> dict:
@@ -71,7 +59,6 @@ class ToolRegistry:
         import asyncpg
 
         connection = await asyncpg.connect(asyncpg_dsn(self.tool_sql_database_url))
-        self.cursor_opened += 1
         try:
             async with connection.transaction():
                 await connection.execute("SELECT set_config('app.current_tenant_id', $1, true)", tenant_id)
