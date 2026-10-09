@@ -28,7 +28,7 @@ POST /api/v1/agents/jobs
 POST /api/v1/agents/jobs/{id}/approve
 ```
 
-Approve with `x-aegis-timestamp` and `x-aegis-signature`. 429 `RATE_LIMITED` if the token or approve window is exceeded.
+Approve with `x-aegis-timestamp` and `x-aegis-signature`. 429 `RATE_LIMITED` if the sliding 60s window is exceeded (token per peer IP, approve per user).
 
 ## Search
 

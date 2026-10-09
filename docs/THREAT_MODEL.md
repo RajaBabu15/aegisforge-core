@@ -20,7 +20,7 @@ HMAC over `timestamp + job_id + body`, 300s window, Redis nonce, job-bound signa
 
 ## Rate limits
 
-`/oauth/token` is capped per client IP. Job approval is capped per user. Defaults 30 and 20 per minute.
+Sliding 60s window in Redis (sorted set). `/oauth/token` is capped per TCP peer IP (default 30). Clients behind one NAT share that bucket. Job approval is capped per user id (default 20). No `X-Forwarded-For`.
 
 ## Login before tenant GUC
 
