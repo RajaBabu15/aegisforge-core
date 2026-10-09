@@ -33,16 +33,6 @@ async def open_checkpointer(settings: Settings) -> tuple[AsyncPostgresSaver, obj
 async def _grant_checkpoint_tables(migrator_url: str) -> None:
     connection = await asyncpg.connect(asyncpg_dsn(migrator_url))
     try:
-        await connection.execute(
-            """
-            DO $$
-            BEGIN
-              IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'aegis_checkpoint') THEN
-                CREATE ROLE aegis_checkpoint LOGIN PASSWORD 'checkpoint' NOSUPERUSER NOBYPASSRLS;
-              END IF;
-            END $$;
-            """
-        )
         for table in _CHECKPOINT_TABLES:
             await connection.execute(f"REVOKE ALL ON TABLE {table} FROM aegis_app")
             await connection.execute(

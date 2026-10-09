@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import asyncpg
 
@@ -13,7 +14,19 @@ def asyncpg_dsn(url: str) -> str:
     return url.replace("postgresql+asyncpg://", "postgresql://")
 
 
-async def apply_schema(migrator_url: str) -> None:
+def _dsn_password(url: str) -> str:
+    parsed = urlparse(asyncpg_dsn(url))
+    return unquote(parsed.password or "")
+
+
+async def _set_role_password(connection: asyncpg.Connection, role: str, password: str) -> None:
+    if not password:
+        raise RuntimeError(f"password for role {role} is missing from the database URL")
+    quoted = await connection.fetchval("SELECT quote_literal($1::text)", password)
+    await connection.execute(f"ALTER ROLE {role} LOGIN PASSWORD {quoted}")
+
+
+async def apply_schema(migrator_url: str, settings: Settings | None = None) -> None:
     connection = await asyncpg.connect(asyncpg_dsn(migrator_url))
     try:
         exists = await connection.fetchval("SELECT to_regclass('public.organizations')")
@@ -21,6 +34,12 @@ async def apply_schema(migrator_url: str) -> None:
             await connection.execute(_SCHEMA.read_text())
         if await connection.fetchval("SELECT to_regclass('public.organizations')"):
             await connection.execute(_REPAIR.read_text())
+        if settings is not None:
+            await _set_role_password(connection, "aegis_migrator", _dsn_password(settings.migrator_database_url))
+            await _set_role_password(connection, "aegis_app", _dsn_password(settings.database_url))
+            await _set_role_password(connection, "aegis_tool_sql", _dsn_password(settings.tool_sql_database_url))
+            checkpoint_url = settings.checkpoint_database_url or settings.migrator_database_url
+            await _set_role_password(connection, "aegis_checkpoint", _dsn_password(checkpoint_url))
     finally:
         await connection.close()
 

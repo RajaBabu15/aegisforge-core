@@ -7,6 +7,7 @@ from sqlalchemy import text
 from src.core.errors import AegisError
 from src.core.security import APPROVAL_WINDOW_SECONDS, sha256_hex, verify_approval
 from src.models.schemas import JobCreate, JobView
+from src.services.rate_limit import enforce_rate_limit
 
 router = APIRouter(prefix="/api/v1")
 
@@ -56,6 +57,12 @@ async def get_job(request: Request, job_id: str) -> JobView:
 
 @router.post("/agents/jobs/{job_id}/approve", response_model=JobView)
 async def approve_job(request: Request, job_id: str) -> JobView:
+    principal = request.state.principal
+    await enforce_rate_limit(
+        request.app.state.redis,
+        key=f"af:rl:approve:{principal.user_id}",
+        limit=request.app.state.settings.approval_rate_limit,
+    )
     raw = await request.body()
     settings = request.app.state.settings
     timestamp = request.headers.get("x-aegis-timestamp", "")
@@ -65,7 +72,6 @@ async def approve_job(request: Request, job_id: str) -> JobView:
     first_use = await request.app.state.redis.set(nonce_key, "1", nx=True, ex=APPROVAL_WINDOW_SECONDS + 5)
     if not first_use:
         raise AegisError(401, "APPROVAL_REPLAYED", "approval signature already used")
-    principal = request.state.principal
     if "agents:approve" not in principal.scopes:
         raise AegisError(403, "FORBIDDEN", "agents:approve is required")
     try:

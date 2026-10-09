@@ -20,6 +20,7 @@ from src.core.security import (
 )
 from src.models.schemas import CreateKeyRequest, CreateKeyResponse, TokenResponse
 from src.services.identity import scopes_for_role
+from src.services.rate_limit import enforce_rate_limit
 
 router = APIRouter()
 log = logging.getLogger("aegisforge.iam")
@@ -156,6 +157,11 @@ async def login_with_password(request: Request, email: str, password: str) -> JS
 
 @router.post("/oauth/token", response_model=None)
 async def token(request: Request):
+    await enforce_rate_limit(
+        request.app.state.redis,
+        key=f"af:rl:token:{_client_ip(request) or 'unknown'}",
+        limit=request.app.state.settings.token_rate_limit,
+    )
     form = await request.form()
     grant = form.get("grant_type")
     if grant == "password":

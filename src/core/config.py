@@ -57,6 +57,10 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("AEGIS_OAUTH_REDIRECT_URI", "OAUTH_REDIRECT_URI"),
     )
     workflow_version: str = "2.0.0"
+    token_rate_limit: int = Field(30, validation_alias=AliasChoices("AEGIS_TOKEN_RATE_LIMIT", "TOKEN_RATE_LIMIT"))
+    approval_rate_limit: int = Field(
+        20, validation_alias=AliasChoices("AEGIS_APPROVAL_RATE_LIMIT", "APPROVAL_RATE_LIMIT")
+    )
     bootstrap_domain: str = Field(
         "demo.aegisforge.local", validation_alias=AliasChoices("AEGIS_BOOTSTRAP_DOMAIN", "BOOTSTRAP_DOMAIN")
     )

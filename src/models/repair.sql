@@ -61,7 +61,7 @@ $$;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'aegis_checkpoint') THEN
-    CREATE ROLE aegis_checkpoint LOGIN PASSWORD 'checkpoint' NOSUPERUSER NOBYPASSRLS;
+    CREATE ROLE aegis_checkpoint LOGIN NOSUPERUSER NOBYPASSRLS;
   END IF;
 END $$;
 

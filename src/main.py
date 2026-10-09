@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -17,6 +18,8 @@ from src.services.revocation import RevocationStore
 from src.services.tools_sandbox import ToolRegistry
 from src.services.workflow_engine import JobStore, WorkflowEngine
 
+_log = logging.getLogger("aegisforge")
+
 
 def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
     settings = settings or Settings()
@@ -24,7 +27,7 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if settings.auto_migrate:
-            await apply_schema(settings.migrator_database_url)
+            await apply_schema(settings.migrator_database_url, settings)
             await bootstrap(settings.migrator_database_url, settings)
         app.state.session_factory = overrides.get("session_factory") or make_session_factory(settings.database_url)
         redis = overrides.get("redis")
@@ -38,7 +41,10 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
             settings.refresh_ttl_seconds,
         )
         app.state.retrieval = overrides.get("retrieval") or HybridRetriever(settings)
-        await app.state.retrieval.hydrate(settings.migrator_database_url)
+        try:
+            await app.state.retrieval.hydrate(settings.migrator_database_url)
+        except Exception:
+            _log.exception("hydrate failed")
         app.state.llm = overrides.get("llm") or build_llm(settings)
         app.state.jobs = overrides.get("jobs") or JobStore()
         app.state.tools = overrides.get("tools") or ToolRegistry(tool_sql_database_url=settings.tool_sql_database_url)
@@ -75,22 +81,24 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
 
     @app.get("/ready")
     async def ready(request: Request) -> JSONResponse:
-        checks = {"postgres": "down", "redis": "down", "qdrant": "down"}
+        checks = {"postgres": "down", "redis": "down", "qdrant": "down", "hydrate": "down"}
         try:
             async with request.app.state.session_factory() as session:
                 await session.execute(text("SELECT 1"))
             checks["postgres"] = "ok"
         except Exception:
-            pass
+            _log.exception("ready postgres check failed")
         try:
             await request.app.state.redis.ping()
             checks["redis"] = "ok"
         except Exception:
-            pass
+            _log.exception("ready redis check failed")
         try:
             checks["qdrant"] = request.app.state.retrieval.ping()
         except Exception:
-            pass
+            _log.exception("ready qdrant check failed")
+        if getattr(request.app.state.retrieval, "hydrate_ok", False):
+            checks["hydrate"] = "ok"
         ok = all(value == "ok" for value in checks.values())
         return JSONResponse(
             {

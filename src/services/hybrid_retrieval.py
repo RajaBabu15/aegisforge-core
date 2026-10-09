@@ -85,6 +85,8 @@ class HybridRetriever:
         self.meta: dict[str, dict] = {}
         self.embedder = settings.embedder
         self.reranker = settings.reranker
+        self.hydrate_ok = False
+        self.hydrate_error: str | None = None
 
     def _ensure_collection(self) -> None:
         if self.qdrant.collection_exists("chunks"):
@@ -158,6 +160,38 @@ class HybridRetriever:
         return chunk_id
 
     def _index_chunk(
+        self,
+        *,
+        tenant_id: str,
+        doc_id: str,
+        chunk_id: str,
+        page: int,
+        line_start: int,
+        line_end: int,
+        content: str,
+        digest: str,
+        write_sparse: bool,
+    ) -> None:
+        last: Exception | None = None
+        for _ in range(3):
+            try:
+                self._write_indexes(
+                    tenant_id=tenant_id,
+                    doc_id=doc_id,
+                    chunk_id=chunk_id,
+                    page=page,
+                    line_start=line_start,
+                    line_end=line_end,
+                    content=content,
+                    digest=digest,
+                    write_sparse=write_sparse,
+                )
+                return
+            except Exception as exc:
+                last = exc
+        raise RetrievalSideError("index", last or RuntimeError("index write failed"))
+
+    def _write_indexes(
         self,
         *,
         tenant_id: str,
@@ -300,10 +334,9 @@ class HybridRetriever:
 
         from src.services.migrate import asyncpg_dsn
 
-        try:
-            connection = await asyncpg.connect(asyncpg_dsn(migrator_url))
-        except Exception:
-            return
+        self.hydrate_ok = False
+        self.hydrate_error = None
+        connection = await asyncpg.connect(asyncpg_dsn(migrator_url))
         try:
             rows = await connection.fetch(
                 """
@@ -313,8 +346,6 @@ class HybridRetriever:
                 JOIN documents d ON d.id = c.document_id
                 """
             )
-        except Exception:
-            return
         finally:
             await connection.close()
         write_sparse: dict[str, bool] = {}
@@ -334,6 +365,7 @@ class HybridRetriever:
                 digest=str(row["sha256"]).strip(),
                 write_sparse=write_sparse[tenant_id],
             )
+        self.hydrate_ok = True
 
     async def query(self, tenant_id: str, query: str, session=None) -> list[Citation]:
         import asyncio

@@ -3,16 +3,13 @@
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'aegis_migrator') THEN
-    CREATE ROLE aegis_migrator LOGIN PASSWORD 'migrator' SUPERUSER;
+    CREATE ROLE aegis_migrator LOGIN SUPERUSER;
   END IF;
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'aegis_app') THEN
-    CREATE ROLE aegis_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB;
+    CREATE ROLE aegis_app LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB;
   END IF;
-  -- Dedicated, narrowly-scoped role for the one agent tool that mutates data
-  -- (execute_sql_write). It gets its own connection, its own statement timeout, and
-  -- privileges on exactly one table -- never the app's full aegis_app grant set.
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'aegis_tool_sql') THEN
-    CREATE ROLE aegis_tool_sql LOGIN PASSWORD 'tool' NOSUPERUSER NOBYPASSRLS NOCREATEDB;
+    CREATE ROLE aegis_tool_sql LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB;
     ALTER ROLE aegis_tool_sql SET statement_timeout = '5s';
   END IF;
 END $$;

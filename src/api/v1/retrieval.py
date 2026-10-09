@@ -14,15 +14,18 @@ async def ingest_document(request: Request, payload: IngestDocument) -> dict:
         raise AegisError(403, "FORBIDDEN", "retrieval:read is required")
     if payload.line_end < payload.line_start:
         raise AegisError(400, "INVALID_REQUEST", "line_end precedes line_start")
-    doc_id = await request.app.state.retrieval.ingest_durable(
-        request.state.session,
-        tenant_id=principal.tenant_id,
-        title=payload.title,
-        content=payload.content,
-        page=payload.page,
-        line_start=payload.line_start,
-        line_end=payload.line_end,
-    )
+    try:
+        doc_id = await request.app.state.retrieval.ingest_durable(
+            request.state.session,
+            tenant_id=principal.tenant_id,
+            title=payload.title,
+            content=payload.content,
+            page=payload.page,
+            line_start=payload.line_start,
+            line_end=payload.line_end,
+        )
+    except RetrievalSideError as exc:
+        raise AegisError(503, "RETRIEVAL_SIDE_FAILED", f"{exc.side} write failed") from exc
     return {"doc_id": doc_id}
 
 
