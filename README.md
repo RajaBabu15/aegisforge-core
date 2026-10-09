@@ -24,7 +24,7 @@ python scripts/simulate_replay_attack.py
 k6 run -e BASE_URL=http://localhost:8000 -e ACCESS_TOKEN="$TOKEN" scripts/load_test_k6.js
 ```
 
-Last `/api/v1/me` k6 table: [docs/evidence/k6.txt](docs/evidence/k6.txt). Retrieval eval (near-misses, synonyms, tenant B): `pytest tests/evaluation -q`. `AF0100` used to rank `AF0100-BETA` (`RESET-0150`) first; `lexical_score` now down-weights hyphenated cousins so `near_miss_ok` is P@1 against the gold reset.
+Last `/api/v1/me` k6 table: [docs/evidence/k6.txt](docs/evidence/k6.txt). Unit + security tests: `pytest tests/unit -q -m "not slow"`. Retrieval eval (near-misses, synonyms, tenant B): `pytest tests/evaluation -q`. `AF0100` used to rank `AF0100-BETA` (`RESET-0150`) first; `lexical_score` now down-weights hyphenated cousins so `near_miss_ok` is P@1 against the gold reset. CI is `.github/workflows/ci-eval-pipeline.yml`.
 
 ## Model switches
 
