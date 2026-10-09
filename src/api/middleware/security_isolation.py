@@ -9,7 +9,7 @@ from src.services.identity import Principal
 from src.services.telemetry import tracer
 
 _PUBLIC_PREFIXES = ("/oauth/", "/docs", "/redoc")
-_PUBLIC_EXACT = {"/", "/health", "/ready", "/metrics", "/openapi.json", "/ui/api/login"}
+_PUBLIC_EXACT = {"/health", "/ready", "/metrics", "/openapi.json"}
 
 
 def install_security(app) -> None:

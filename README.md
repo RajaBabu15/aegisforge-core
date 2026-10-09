@@ -1,6 +1,6 @@
 # AegisForge
 
-Multi-tenant agent API. Console at `/`.
+Multi-tenant agent API.
 
 Login binds a tenant. Postgres RLS checks it again. Refresh reuse kills the token family. High-risk tools wait for a signed admin approval. Search cites a runbook chunk or returns `INSUFFICIENT_EVIDENCE`.
 
@@ -17,7 +17,7 @@ docker compose -f docker/docker-compose.yml up --build -d
 curl -fsS http://localhost:8000/health
 ```
 
-Open `http://localhost:8000/`. Copy `AEGIS_BOOTSTRAP_B_*` into `docker/local.env` for the Other tenant panel.
+API: `http://localhost:8000/docs`
 
 ```bash
 python scripts/simulate_replay_attack.py

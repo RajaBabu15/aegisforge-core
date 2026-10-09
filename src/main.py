@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse, Response
 
 from src.api.middleware.otel_telemetry import install_telemetry
 from src.api.middleware.security_isolation import install_security
-from src.api.v1 import agents, auth, console, retrieval, scim, sessions
+from src.api.v1 import agents, auth, retrieval, scim, sessions
 from src.core.config import Settings
 from src.db import make_session_factory
 from src.services.checkpointer import open_checkpointer
@@ -85,7 +85,6 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
     app.state.settings = settings
     install_security(app)
     install_telemetry(app)
-    app.include_router(console.router)
     app.include_router(auth.router)
     app.include_router(scim.router)
     app.include_router(agents.router)
