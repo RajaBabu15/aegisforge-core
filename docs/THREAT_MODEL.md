@@ -25,3 +25,15 @@ HMAC over `timestamp + job_id + body`, 300s window, Redis nonce, job-bound signa
 `auth_find_user_by_email` is `SECURITY DEFINER` and the only global index. Uniqueness is `(tenant_id, email)`. `_unique_user` requires exactly one row; two tenants sharing an email hard-fail login. Demo emails are distinct across Demo and Other.
 
 Role change does not rotate tokens. Sign in again. The UI says so.
+
+## Resume after identity change
+
+SCIM deactivate cancels open jobs in SQL. Role change does not. Resume re-reads the job owner’s live `is_active` and `system_role` before the tool runs. A deactivated owner or a role that no longer grants the suspended tool is `CRITICAL_SECURITY_DENIAL`; the tool is not invoked.
+
+## Rate limits
+
+None on `/oauth/authorize`, `/oauth/token`, or job creation. Demo only.
+
+## JWT
+
+Access tokens check required claims and a 30s leeway. No `aud` or `iss`.

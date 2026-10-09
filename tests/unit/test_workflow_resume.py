@@ -85,3 +85,50 @@ async def test_postgres_checkpointer_survives_a_new_connection(settings) -> None
     assert finished["current_phase"] == "RESPOND"
     assert second_tools.spy == ["file_ticket"]
     assert finished["accumulated_token_cost"] == suspended["accumulated_token_cost"]
+
+
+class _UserResult:
+    def __init__(self, row: dict | None) -> None:
+        self._row = row
+
+    def mappings(self):
+        return self
+
+    def first(self):
+        return self._row
+
+
+class _UserSession:
+    def __init__(self, row: dict | None) -> None:
+        self.row = row
+
+    async def execute(self, statement, params=None):
+        del params
+        sql = str(statement)
+        if "FROM users" in sql:
+            return _UserResult(self.row)
+        return _UserResult(None)
+
+
+async def test_resume_denies_when_owner_is_deactivated() -> None:
+    jobs = MemoryJobStore()
+    tools = ToolRegistry()
+    engine = WorkflowEngine(tools=tools, retrieval=None, llm=StubLLM(), jobs=jobs, settings=_settings())
+    principal = Principal("user", "tenant", ["tickets:write"], "jti", "family", "jwt")
+    await engine.start(None, job_id="job-dead", task="file a tracking ticket", principal=principal, trace_id="t")
+    denied = await engine.resume(_UserSession({"is_active": False, "system_role": "workspace_developer"}), "job-dead", "APPROVED")
+    assert denied["current_phase"] == "CRITICAL_SECURITY_DENIAL"
+    assert denied["execution_payload_state"]["output"]["code"] == "USER_DEACTIVATED"
+    assert tools.spy == []
+
+
+async def test_resume_denies_when_owner_lost_the_tool_scope() -> None:
+    jobs = MemoryJobStore()
+    tools = ToolRegistry()
+    engine = WorkflowEngine(tools=tools, retrieval=None, llm=StubLLM(), jobs=jobs, settings=_settings())
+    principal = Principal("user", "tenant", ["tickets:write"], "jti", "family", "jwt")
+    await engine.start(None, job_id="job-viewer", task="file a tracking ticket", principal=principal, trace_id="t")
+    denied = await engine.resume(_UserSession({"is_active": True, "system_role": "viewer"}), "job-viewer", "APPROVED")
+    assert denied["current_phase"] == "CRITICAL_SECURITY_DENIAL"
+    assert denied["execution_payload_state"]["output"]["code"] == "SCOPE_CHANGED"
+    assert tools.spy == []

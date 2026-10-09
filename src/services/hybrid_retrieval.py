@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import math
 import re
 import threading
@@ -14,6 +15,7 @@ from src.services.telemetry import tracer
 
 _TOKEN = re.compile(r"[a-z0-9]+")
 _DIM = 384
+_log = logging.getLogger("aegisforge.retrieval")
 
 
 class RetrievalSideError(Exception):
@@ -85,6 +87,10 @@ class HybridRetriever:
         self.meta: dict[str, dict] = {}
         self.embedder = settings.embedder
         self.reranker = settings.reranker
+        if self.embedder == "hash":
+            _log.warning(
+                "AEGIS_EMBEDDER=hash is a bag-of-tokens demo default; set AEGIS_EMBEDDER=fastembed before a non-demo deploy"
+            )
 
     def _ensure_collection(self) -> None:
         if self.qdrant.collection_exists("chunks"):

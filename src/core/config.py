@@ -26,9 +26,18 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     rerank_candidates: int = 20
     rerank_min_score: float = 0.2
-    embedder: str = "hash"
-    reranker: str = "lexical"
-    reranker_model: str = "BAAI/bge-reranker-base"
+    embedder: str = Field(
+        "hash",
+        validation_alias=AliasChoices("AEGIS_EMBEDDER", "EMBEDDER"),
+    )
+    reranker: str = Field(
+        "lexical",
+        validation_alias=AliasChoices("AEGIS_RERANKER", "RERANKER"),
+    )
+    reranker_model: str = Field(
+        "BAAI/bge-reranker-base",
+        validation_alias=AliasChoices("AEGIS_RERANKER_MODEL", "RERANKER_MODEL"),
+    )
     llm: str = "stub"
     llm_base_url: str | None = None
     llm_api_key: str | None = None

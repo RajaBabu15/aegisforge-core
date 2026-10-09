@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any, TypedDict
 
@@ -6,6 +7,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 from sqlalchemy import text
 
+from src.services.identity import scopes_for_role
 from src.services.llm import answer_is_grounded, infer
 from src.services.telemetry import AGENT_OUTCOME, HALLUCINATION, TOKEN_CONSUMPTION, parent_context, tracer
 from src.services.tools_sandbox import ToolRegistry
@@ -99,10 +101,56 @@ class WorkflowEngine:
             return current
         if current["current_phase"] in TERMINAL:
             return current
+        blocked = await self._resume_blocked(session, current)
+        if blocked:
+            return await self._deny_resume(session, current, blocked)
         config = {"configurable": {"thread_id": job_id}}
         with self._workflow_span(current.get("trace_id") or ""):
             await self.graph.ainvoke(Command(resume=decision), config)
         return await self._persist(session, job_id, config)
+
+    async def _resume_blocked(self, session, current: dict) -> str | None:
+        if session is None or not hasattr(session, "execute"):
+            return None
+        user_id = current.get("user_id")
+        if not user_id:
+            return None
+        found = await session.execute(
+            text("SELECT is_active, system_role FROM users WHERE id = CAST(:id AS uuid)"),
+            {"id": str(user_id)},
+        )
+        row = found.mappings().first()
+        if row is None or not row["is_active"]:
+            return "USER_DEACTIVATED"
+        try:
+            live_scopes = scopes_for_role(row["system_role"])
+        except KeyError:
+            return "SCOPE_CHANGED"
+        payload = current.get("execution_payload_state") or {}
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        tool_name = payload.get("tool_name")
+        if tool_name and not self.tools.allows(tool_name, live_scopes):
+            return "SCOPE_CHANGED"
+        return None
+
+    async def _deny_resume(self, session, current: dict, code: str) -> dict:
+        payload = current.get("execution_payload_state") or {}
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        payload = dict(payload)
+        payload["output"] = {"code": code}
+        row = {
+            **current,
+            "current_phase": "CRITICAL_SECURITY_DENIAL",
+            "is_suspended_for_approval": False,
+            "execution_payload_state": payload,
+        }
+        await self.jobs.save(session, row)
+        await self._audit_phase(session, row)
+        await self._publish_job_event(row, "CRITICAL_SECURITY_DENIAL")
+        _record_outcome(row)
+        return row
 
     async def _plan(self, state: WFState) -> dict:
         if "plan" in state.get("steps", []):
@@ -263,7 +311,7 @@ class WorkflowEngine:
         output = payload.get("output") if isinstance(payload, dict) else None
         code = str((output or {}).get("code") or "") if isinstance(output, dict) else ""
         if phase == "CRITICAL_SECURITY_DENIAL":
-            await self._audit(session, row, "DENY", "SCOPE")
+            await self._audit(session, row, "DENY", code or "SCOPE")
         elif phase == "CANCELLED":
             await self._audit(session, row, "DENY", "HUMAN_REJECTED")
         elif phase != "RESPOND":
