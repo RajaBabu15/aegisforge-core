@@ -17,6 +17,6 @@ docker compose -f docker/docker-compose.yml up --build -d
 curl -fsS http://localhost:8000/health
 ```
 
-API: `http://localhost:8000/docs`
+API: `http://localhost:8000/docs`. Metrics: `http://localhost:8000/metrics`.
 
 Role passwords come from the database URLs in `docker/local.env`, not from `schema.sql`. Threats: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md). Ops: [docs/RUNBOOK.md](docs/RUNBOOK.md).

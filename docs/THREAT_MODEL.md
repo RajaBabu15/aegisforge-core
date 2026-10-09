@@ -8,11 +8,11 @@ A presented refresh token is consumed in SQL. Reuse returns `replay` and revokes
 
 ## Cross-tenant RAG
 
-Qdrant filters `tenant_id`. Tantivy lives under `tantivy_dir/<tenant_id>/`. Query drops chunks whose stored tenant does not match. `hydrate()` reads as migrator at boot; request path is RLS plus filters. Failed hydrate marks `/ready` down.
+Qdrant filters `tenant_id`. Tantivy lives under `tantivy_dir/<tenant_id>/`. Query drops chunks whose stored tenant does not match. Boot hydrate lists tenant ids as migrator, then reads chunks as `aegis_app` with `app.current_tenant_id` set per tenant. Failed hydrate marks `/ready` down.
 
 ## Tool scope
 
-First line of the task chooses the tool. Missing checkpoint scopes yield `CRITICAL_SECURITY_DENIAL` and open no SQL cursor. `aegis_tool_sql` may `SELECT, INSERT` on `agent_tool_writes` only, 5s timeout.
+First line of the task is the capability lock (`ticket` / `sql` / else billing). Later lines may supply JSON args; they cannot pick a write tool. Each tool has a cost and an args schema. Missing checkpoint scopes yield `CRITICAL_SECURITY_DENIAL` and open no SQL cursor. Verify checks result shape (`ticket_id`, SQL `wrote`+`id`, billing `balance`). `aegis_tool_sql` may `SELECT, INSERT` on `agent_tool_writes` only, 5s timeout.
 
 ## Approval forgery
 

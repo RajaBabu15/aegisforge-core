@@ -1,9 +1,12 @@
 import inspect
+import json
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from src.services.migrate import asyncpg_dsn
+from src.services.telemetry import TOOL_DURATION
 
 
 @dataclass
@@ -11,6 +14,8 @@ class Tool:
     name: str
     required_scopes: set[str]
     requires_approval: bool
+    cost: float
+    arg_key: str
     fn: Callable[[dict, str], Any]
 
 
@@ -23,9 +28,11 @@ class ToolRegistry:
         if self.tools:
             return
         self.tools = {
-            "file_ticket": Tool("file_ticket", {"tickets:write"}, True, self._file_ticket),
-            "execute_sql_write": Tool("execute_sql_write", {"tickets:write"}, True, self._execute_sql_write),
-            "read_billing": Tool("read_billing", {"billing:read"}, False, self._read_billing),
+            "file_ticket": Tool("file_ticket", {"tickets:write"}, True, 0.002, "summary", self._file_ticket),
+            "execute_sql_write": Tool(
+                "execute_sql_write", {"tickets:write"}, True, 0.01, "statement", self._execute_sql_write
+            ),
+            "read_billing": Tool("read_billing", {"billing:read"}, False, 0.0005, "summary", self._read_billing),
         }
 
     def choose(self, task: str) -> str:
@@ -36,16 +43,38 @@ class ToolRegistry:
             return "execute_sql_write"
         return "read_billing"
 
+    def args_for(self, name: str, task: str) -> dict:
+        tool = self.tools[name]
+        lines = (task or "").splitlines()
+        body = "\n".join(lines[1:]).strip()
+        if body:
+            try:
+                loaded = json.loads(body)
+            except json.JSONDecodeError:
+                loaded = None
+            if isinstance(loaded, dict):
+                if tool.arg_key in loaded:
+                    return {tool.arg_key: loaded[tool.arg_key]}
+                return {tool.arg_key: body}
+        return {tool.arg_key: body or task}
+
     def allows(self, name: str, scopes: list[str]) -> bool:
         return self.tools[name].required_scopes <= set(scopes)
 
     async def invoke(self, name: str, args: dict, scopes: list[str], tenant_id: str) -> dict:
         tool = self.tools[name]
+        started = time.perf_counter()
         if not self.allows(name, scopes):
+            TOOL_DURATION.labels(tool=name, outcome="denied").observe(time.perf_counter() - started)
             raise PermissionError(name)
-        result = tool.fn(args, tenant_id)
-        if inspect.isawaitable(result):
-            result = await result
+        try:
+            result = tool.fn(args, tenant_id)
+            if inspect.isawaitable(result):
+                result = await result
+        except Exception:
+            TOOL_DURATION.labels(tool=name, outcome="error").observe(time.perf_counter() - started)
+            raise
+        TOOL_DURATION.labels(tool=name, outcome="ok").observe(time.perf_counter() - started)
         return result
 
     def _file_ticket(self, args: dict, tenant_id: str) -> dict:

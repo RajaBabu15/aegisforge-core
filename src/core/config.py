@@ -56,7 +56,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8765/callback",
         validation_alias=AliasChoices("AEGIS_OAUTH_REDIRECT_URI", "OAUTH_REDIRECT_URI"),
     )
-    workflow_version: str = "2.0.0"
+    workflow_version: str = "2.1.0"
     token_rate_limit: int = Field(30, validation_alias=AliasChoices("AEGIS_TOKEN_RATE_LIMIT", "TOKEN_RATE_LIMIT"))
     approval_rate_limit: int = Field(
         20, validation_alias=AliasChoices("AEGIS_APPROVAL_RATE_LIMIT", "APPROVAL_RATE_LIMIT")

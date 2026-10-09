@@ -8,7 +8,7 @@ from src.core.security import decode_access_token, sha256_hex
 from src.services.identity import Principal
 
 _PUBLIC_PREFIXES = ("/oauth/", "/docs", "/redoc")
-_PUBLIC_EXACT = {"/health", "/ready", "/openapi.json"}
+_PUBLIC_EXACT = {"/health", "/ready", "/metrics", "/openapi.json"}
 
 
 def install_security(app) -> None:
@@ -17,7 +17,7 @@ def install_security(app) -> None:
         request.state.after_commit = []
         request.state.trace_id = uuid.uuid4().hex
         path = request.url.path
-        if path in {"/health", "/ready"}:
+        if path in {"/health", "/ready", "/metrics"}:
             return await call_next(request)
         factory = request.app.state.session_factory
         session = factory()

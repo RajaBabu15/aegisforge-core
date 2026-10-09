@@ -2,9 +2,10 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from redis.asyncio import Redis
 from sqlalchemy import text
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 from src.api.middleware.security_isolation import install_security
 from src.api.v1 import agents, auth, retrieval, scim
@@ -42,7 +43,7 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
         )
         app.state.retrieval = overrides.get("retrieval") or HybridRetriever(settings)
         try:
-            await app.state.retrieval.hydrate(settings.migrator_database_url)
+            await app.state.retrieval.hydrate(settings.migrator_database_url, settings.database_url)
         except Exception:
             _log.exception("hydrate failed")
         app.state.llm = overrides.get("llm") or build_llm(settings)
@@ -78,6 +79,10 @@ def create_app(settings: Settings | None = None, **overrides) -> FastAPI:
     @app.get("/health")
     async def health(request: Request) -> dict:
         return {"status": "ok", "trace_id": getattr(request.state, "trace_id", "")}
+
+    @app.get("/metrics")
+    async def metrics() -> Response:
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     @app.get("/ready")
     async def ready(request: Request) -> JSONResponse:

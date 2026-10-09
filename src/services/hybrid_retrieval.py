@@ -329,43 +329,54 @@ class HybridRetriever:
         )
         return doc_id
 
-    async def hydrate(self, migrator_url: str) -> None:
+    async def hydrate(self, migrator_url: str, app_url: str | None = None) -> None:
         import asyncpg
 
         from src.services.migrate import asyncpg_dsn
 
         self.hydrate_ok = False
         self.hydrate_error = None
-        connection = await asyncpg.connect(asyncpg_dsn(migrator_url))
+        app_url = app_url or migrator_url
+        migrator = await asyncpg.connect(asyncpg_dsn(migrator_url))
         try:
-            rows = await connection.fetch(
-                """
-                SELECT c.tenant_id, c.page, c.line_start, c.line_end, c.sha256, c.content,
-                       c.qdrant_point_id, d.id AS doc_id
-                FROM document_chunks c
-                JOIN documents d ON d.id = c.document_id
-                """
-            )
+            tenants = await migrator.fetch("SELECT id FROM organizations")
         finally:
-            await connection.close()
-        write_sparse: dict[str, bool] = {}
-        for row in rows:
-            tenant_id = str(row["tenant_id"])
-            if tenant_id not in write_sparse:
-                path = self.tantivy_dir / tenant_id
-                write_sparse[tenant_id] = not (path.exists() and any(path.iterdir()))
-            self._index_chunk(
-                tenant_id=tenant_id,
-                doc_id=str(row["doc_id"]),
-                chunk_id=str(row["qdrant_point_id"]),
-                page=row["page"],
-                line_start=row["line_start"],
-                line_end=row["line_end"],
-                content=row["content"],
-                digest=str(row["sha256"]).strip(),
-                write_sparse=write_sparse[tenant_id],
-            )
-        self.hydrate_ok = True
+            await migrator.close()
+        app = await asyncpg.connect(asyncpg_dsn(app_url))
+        try:
+            write_sparse: dict[str, bool] = {}
+            for tenant in tenants:
+                tenant_id = str(tenant["id"])
+                await app.execute("SELECT set_config('app.current_tenant_id', $1, false)", tenant_id)
+                rows = await app.fetch(
+                    """
+                    SELECT c.tenant_id, c.page, c.line_start, c.line_end, c.sha256, c.content,
+                           c.qdrant_point_id, d.id AS doc_id
+                    FROM document_chunks c
+                    JOIN documents d ON d.id = c.document_id
+                    """
+                )
+                if tenant_id not in write_sparse:
+                    path = self.tantivy_dir / tenant_id
+                    write_sparse[tenant_id] = not (path.exists() and any(path.iterdir()))
+                for row in rows:
+                    self._index_chunk(
+                        tenant_id=str(row["tenant_id"]),
+                        doc_id=str(row["doc_id"]),
+                        chunk_id=str(row["qdrant_point_id"]),
+                        page=row["page"],
+                        line_start=row["line_start"],
+                        line_end=row["line_end"],
+                        content=row["content"],
+                        digest=str(row["sha256"]).strip(),
+                        write_sparse=write_sparse[tenant_id],
+                    )
+            self.hydrate_ok = True
+        except Exception as exc:
+            self.hydrate_error = str(exc)
+            raise
+        finally:
+            await app.close()
 
     async def query(self, tenant_id: str, query: str, session=None) -> list[Citation]:
         import asyncio

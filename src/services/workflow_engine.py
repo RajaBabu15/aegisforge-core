@@ -9,12 +9,13 @@ from sqlalchemy import text
 
 from src.services.identity import scopes_for_role
 from src.services.llm import answer_is_grounded, infer
+from src.services.telemetry import HALLUCINATION, TOKEN_CONSUMPTION, record_outcome
 from src.services.tools_sandbox import ToolRegistry
 
 log = logging.getLogger("aegisforge.workflow")
 
 TERMINAL = {"RESPOND", "CRITICAL_SECURITY_DENIAL", "CANCELLED"}
-PLAN_COST = 0.001
+NODE_COST = {"plan": 0.001, "choose": 0.0005, "verify": 0.0005, "respond": 0.0005}
 
 
 class WFState(TypedDict, total=False):
@@ -25,8 +26,10 @@ class WFState(TypedDict, total=False):
     trace_id: str
     steps: list[str]
     cost: float
+    cost_breakdown: dict
     phase: str
     tool_name: str
+    tool_args: dict
     tool_result: dict
     citations: list[dict]
     skip_llm: bool
@@ -81,6 +84,7 @@ class WorkflowEngine:
             "trace_id": trace_id,
             "steps": [],
             "cost": 0.0,
+            "cost_breakdown": {},
             "phase": "START",
             "version": self.settings.workflow_version,
             "citations": [],
@@ -150,12 +154,13 @@ class WorkflowEngine:
         if "plan" in state.get("steps", []):
             return {}
         steps = list(state.get("steps", [])) + ["plan"]
-        cost = float(state.get("cost", 0)) + PLAN_COST
-        if cost > float(self.settings.agent_max_cost):
+        cost, breakdown, over = _apply_cost(state, "plan", NODE_COST["plan"], float(self.settings.agent_max_cost))
+        if over:
             return {
                 "phase": "RESPOND",
                 "steps": steps,
                 "cost": cost,
+                "cost_breakdown": breakdown,
                 "citations": [],
                 "skip_llm": True,
                 "output": {"code": "BUDGET_EXCEEDED"},
@@ -170,92 +175,151 @@ class WorkflowEngine:
                 "phase": "RESPOND",
                 "steps": steps,
                 "cost": cost,
+                "cost_breakdown": breakdown,
                 "citations": [],
                 "skip_llm": True,
                 "output": {"code": "INSUFFICIENT_EVIDENCE"},
             }
-        return {"phase": "PLAN", "steps": steps, "cost": cost, "citations": citations, "skip_llm": False}
+        return {
+            "phase": "PLAN",
+            "steps": steps,
+            "cost": cost,
+            "cost_breakdown": breakdown,
+            "citations": citations,
+            "skip_llm": False,
+        }
 
     async def _choose_tool(self, state: WFState) -> dict:
         if "choose_tool" in state.get("steps", []):
             return {}
         name = self.tools.choose(state["task"])
+        args = self.tools.args_for(name, state["task"])
         steps = list(state.get("steps", [])) + ["choose_tool"]
+        cost, breakdown, over = _apply_cost(state, "choose", NODE_COST["choose"], float(self.settings.agent_max_cost))
+        if over:
+            return {
+                "phase": "RESPOND",
+                "steps": steps,
+                "cost": cost,
+                "cost_breakdown": breakdown,
+                "skip_llm": True,
+                "output": {"code": "BUDGET_EXCEEDED"},
+            }
         if not self.tools.allows(name, state.get("scopes", [])):
-            return {"phase": "CRITICAL_SECURITY_DENIAL", "tool_name": name, "steps": steps}
-        return {"phase": "EXECUTE", "tool_name": name, "steps": steps}
+            return {
+                "phase": "CRITICAL_SECURITY_DENIAL",
+                "tool_name": name,
+                "tool_args": args,
+                "steps": steps,
+                "cost": cost,
+                "cost_breakdown": breakdown,
+            }
+        return {
+            "phase": "EXECUTE",
+            "tool_name": name,
+            "tool_args": args,
+            "steps": steps,
+            "cost": cost,
+            "cost_breakdown": breakdown,
+        }
 
     async def _execute(self, state: WFState) -> dict:
         name = state["tool_name"]
         tool = self.tools.tools[name]
+        cost, breakdown, over = _apply_cost(state, "execute", tool.cost, float(self.settings.agent_max_cost))
+        if over:
+            return {
+                "phase": "RESPOND",
+                "cost": cost,
+                "cost_breakdown": breakdown,
+                "skip_llm": True,
+                "output": {"code": "BUDGET_EXCEEDED"},
+            }
         if tool.requires_approval:
             decision = interrupt({"tool": name, "task": state["task"]})
             if decision != "APPROVED":
-                return {"phase": "CANCELLED", "tool_name": name}
-        return {"phase": "VERIFY", "tool_name": name}
+                return {"phase": "CANCELLED", "tool_name": name, "cost": cost, "cost_breakdown": breakdown}
+        return {"phase": "VERIFY", "tool_name": name, "cost": cost, "cost_breakdown": breakdown}
 
     async def _verify(self, state: WFState) -> dict:
         if "verify" in state.get("steps", []):
             return {}
-        result = await self.tools.invoke(
-            state["tool_name"], {"summary": state["task"]}, state.get("scopes", []), state.get("tenant_id", "")
-        )
+        name = state["tool_name"]
+        args = state.get("tool_args") or self.tools.args_for(name, state["task"])
+        result = await self.tools.invoke(name, args, state.get("scopes", []), state.get("tenant_id", ""))
         verification = decide_verification(
-            tool_name=state["tool_name"],
+            tool_name=name,
             tool_result=result,
             citations=state.get("citations") or [],
             scopes=state.get("scopes") or [],
             tools=self.tools,
         )
+        cost, breakdown, _over = _apply_cost(state, "verify", NODE_COST["verify"], float(self.settings.agent_max_cost))
         return {
             "phase": "VERIFY",
             "tool_result": result,
+            "tool_args": args,
             "verification": verification,
             "steps": list(state.get("steps", [])) + ["verify"],
+            "cost": cost,
+            "cost_breakdown": breakdown,
         }
 
     async def _respond(self, state: WFState) -> dict:
         if "respond" in state.get("steps", []):
             return {}
         verification = state.get("verification") or {}
+        cost, breakdown, _over = _apply_cost(
+            state, "respond", NODE_COST["respond"], float(self.settings.agent_max_cost)
+        )
         if verification.get("decision") == "DENY":
             return {
                 "phase": "RESPOND",
                 "output": {"code": "VERIFICATION_DENIED", "verification": verification},
                 "steps": list(state.get("steps", [])) + ["respond"],
+                "cost": cost,
+                "cost_breakdown": breakdown,
             }
+        llm_tokens = 0
+        extra = 0.0
         if state.get("citations"):
             answer, tokens = await infer(self.llm, state["task"], state["citations"], self.settings.llm_model)
+            llm_tokens = int(tokens)
+            TOKEN_CONSUMPTION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc(llm_tokens)
             output = {"answer": answer, "citations": state["citations"], "tool_result": state.get("tool_result")}
             if not answer_is_grounded(answer, state["citations"]):
                 output["ungrounded"] = True
-            extra = tokens / 1_000_000
+                HALLUCINATION.labels(tenant_id=state["tenant_id"], model=self.settings.llm_model).inc()
+            extra = llm_tokens / 1_000_000
         else:
             output = {"tool_result": state.get("tool_result"), "citations": []}
-            extra = 0.0
+        charged = {**state, "cost": cost, "cost_breakdown": breakdown}
+        cost, breakdown, _over = _apply_cost(charged, "llm_tokens", extra, float(self.settings.agent_max_cost))
+        breakdown["llm_tokens_count"] = llm_tokens
         return {
             "phase": "RESPOND",
             "output": output,
             "steps": list(state.get("steps", [])) + ["respond"],
-            "cost": float(state.get("cost", 0)) + extra,
+            "cost": cost,
+            "cost_breakdown": breakdown,
         }
 
     @staticmethod
     def _after_choose_tool(state: WFState) -> str:
-        if state.get("phase") == "CRITICAL_SECURITY_DENIAL":
+        if state.get("phase") in {"CRITICAL_SECURITY_DENIAL", "RESPOND"}:
             return "end"
         return "execute"
 
     @staticmethod
     def _after_execute(state: WFState) -> str:
-        if state.get("phase") in {"CRITICAL_SECURITY_DENIAL", "CANCELLED"}:
+        if state.get("phase") in {"CRITICAL_SECURITY_DENIAL", "CANCELLED", "RESPOND"}:
             return "end"
         return "verify"
 
     @staticmethod
     def _mutation(task: str) -> bool:
-        lowered = task.lower()
-        return "ticket" in lowered or "sql" in lowered
+        command = (task or "").splitlines()[0].lower()
+        return "ticket" in command or "sql" in command
 
     async def _persist(self, session, job_id: str, config: dict) -> dict:
         snapshot = await self.graph.aget_state(config)
@@ -274,17 +338,28 @@ class WorkflowEngine:
                 "task": values.get("task"),
                 "output": values.get("output"),
                 "tool_name": values.get("tool_name"),
+                "tool_args": values.get("tool_args"),
                 "tool_result": values.get("tool_result"),
                 "verification": values.get("verification"),
                 "steps": values.get("steps", []),
+                "cost_breakdown": values.get("cost_breakdown") or {},
             },
             "is_suspended_for_approval": suspended,
             "accumulated_token_cost": float(values.get("cost", 0)),
         }
         await self.jobs.save(session, row)
         status = "awaiting_human_approval" if suspended else phase
-        log.info("job=%s phase=%s status=%s trace_id=%s", job_id, phase, status, row["trace_id"])
+        log.info(
+            "job=%s phase=%s status=%s tool=%s cost=%s trace_id=%s",
+            job_id,
+            phase,
+            status,
+            values.get("tool_name"),
+            row["accumulated_token_cost"],
+            row["trace_id"],
+        )
         await self._audit_phase(session, row)
+        record_outcome(row)
         return row
 
     async def _audit_phase(self, session, row: dict) -> None:
@@ -359,7 +434,7 @@ class JobStore:
                 "trace_id": row["trace_id"],
                 "version": row["workflow_definition_version"],
                 "phase": row["current_phase"],
-                "payload": _json(row["execution_payload_state"]),
+                "payload": json.dumps(row["execution_payload_state"]),
                 "suspended": row["is_suspended_for_approval"],
                 "cost": row["accumulated_token_cost"],
             },
@@ -414,6 +489,13 @@ class JobStore:
         return _row(row)
 
 
+def _apply_cost(state: WFState, key: str, amount: float, max_cost: float) -> tuple[float, dict, bool]:
+    breakdown = dict(state.get("cost_breakdown") or {})
+    breakdown[key] = round(float(breakdown.get(key, 0)) + amount, 9)
+    cost = round(float(state.get("cost", 0)) + amount, 9)
+    return cost, breakdown, cost > max_cost
+
+
 def decide_verification(
     *,
     tool_name: str,
@@ -422,7 +504,6 @@ def decide_verification(
     scopes: list[str],
     tools: ToolRegistry,
 ) -> dict:
-    """Allow or deny a tool result from retrieval and scope signals."""
     signals = {
         "tool": tool_name,
         "citation_count": len(citations or []),
@@ -432,6 +513,15 @@ def decide_verification(
         return {"decision": "DENY", "reason": "SCOPE", "signals": signals}
     if not tool_result:
         return {"decision": "DENY", "reason": "TOOL_EMPTY", "signals": signals}
+    if tool_name == "file_ticket" and not tool_result.get("ticket_id"):
+        return {"decision": "DENY", "reason": "TICKET_SHAPE", "signals": signals}
+    if tool_name == "execute_sql_write":
+        if tool_result.get("wrote") is False:
+            return {"decision": "DENY", "reason": "NO_SANDBOX", "signals": signals}
+        if not tool_result.get("id"):
+            return {"decision": "DENY", "reason": "SQL_SHAPE", "signals": signals}
+    if tool_name == "read_billing" and tool_result.get("balance") is None:
+        return {"decision": "DENY", "reason": "BILLING_SHAPE", "signals": signals}
     return {"decision": "ALLOW", "reason": "VERIFIED", "signals": signals}
 
 

@@ -7,6 +7,7 @@
 3. Role passwords are the passwords inside `DATABASE_URL`, `MIGRATOR_DATABASE_URL`, `AEGIS_TOOL_SQL_DATABASE_URL`, and `AEGIS_CHECKPOINT_DATABASE_URL`. Change them before any shared Postgres.
 4. `docker compose -f docker/docker-compose.yml up --build -d`
 5. `curl -fsS http://localhost:8000/ready` must show postgres, redis, qdrant, and hydrate `ok`.
+6. Metrics: `curl -fsS http://localhost:8000/metrics`
 
 API: `http://localhost:8000/docs`
 
@@ -28,7 +29,7 @@ POST /api/v1/agents/jobs
 POST /api/v1/agents/jobs/{id}/approve
 ```
 
-Approve with `x-aegis-timestamp` and `x-aegis-signature`. 429 `RATE_LIMITED` if the sliding 60s window is exceeded (token per peer IP, approve per user).
+Approve with `x-aegis-timestamp` and `x-aegis-signature`. 429 `RATE_LIMITED` if the sliding 60s window is exceeded (token per peer IP, approve per user). Job payload includes `cost_breakdown` (plan, choose, execute, verify, respond, llm_tokens). Workflow version is `2.1.0`.
 
 ## Search
 
