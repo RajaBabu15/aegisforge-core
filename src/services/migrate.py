@@ -55,16 +55,7 @@ async def bootstrap(migrator_url: str, settings: Settings) -> None:
             settings.bootstrap_password,
             "workspace_developer",
         )
-        await connection.execute(
-            """
-            INSERT INTO oauth_clients (client_id, tenant_id, redirect_uris, is_public)
-            VALUES ($1, $2, $3, true)
-            ON CONFLICT (client_id) DO UPDATE SET redirect_uris = EXCLUDED.redirect_uris
-            """,
-            settings.oauth_client_id,
-            tenant_id,
-            [settings.oauth_redirect_uri],
-        )
+        await _client(connection, settings.oauth_client_id, tenant_id, settings.oauth_redirect_uri)
         if settings.scim_token:
             await connection.execute(
                 """
@@ -75,8 +66,55 @@ async def bootstrap(migrator_url: str, settings: Settings) -> None:
                 sha256_hex(settings.scim_token),
                 tenant_id,
             )
+        await _bootstrap_other_tenant(connection, settings)
     finally:
         await connection.close()
+
+
+async def _bootstrap_other_tenant(connection: asyncpg.Connection, settings: Settings) -> None:
+    if not settings.bootstrap_b_email or not settings.bootstrap_b_password:
+        return
+    if not settings.bootstrap_b_admin_email or not settings.bootstrap_b_admin_password:
+        return
+    if not settings.bootstrap_b_domain:
+        return
+    tenant_id = await connection.fetchval(
+        """
+        INSERT INTO organizations (name, domain_lock)
+        VALUES ('Other', $1)
+        ON CONFLICT (domain_lock) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id
+        """,
+        settings.bootstrap_b_domain,
+    )
+    await _user(
+        connection,
+        tenant_id,
+        settings.bootstrap_b_admin_email,
+        settings.bootstrap_b_admin_password,
+        "org_admin",
+    )
+    await _user(
+        connection,
+        tenant_id,
+        settings.bootstrap_b_email,
+        settings.bootstrap_b_password,
+        "workspace_developer",
+    )
+    await _client(connection, settings.oauth_client_id_b, tenant_id, settings.oauth_redirect_uri)
+
+
+async def _client(connection: asyncpg.Connection, client_id: str, tenant_id, redirect_uri: str) -> None:
+    await connection.execute(
+        """
+        INSERT INTO oauth_clients (client_id, tenant_id, redirect_uris, is_public)
+        VALUES ($1, $2, $3, true)
+        ON CONFLICT (client_id) DO UPDATE SET redirect_uris = EXCLUDED.redirect_uris, tenant_id = EXCLUDED.tenant_id
+        """,
+        client_id,
+        tenant_id,
+        [redirect_uri],
+    )
 
 
 async def _user(connection: asyncpg.Connection, tenant_id, email: str, password: str, role: str) -> None:

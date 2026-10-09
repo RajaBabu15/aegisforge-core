@@ -23,7 +23,7 @@ async def recent_audit(request: Request) -> dict:
             """
         )
     )
-    return {"events": [dict(row) for row in found.mappings().all()]}
+    return {"events": [_json_event(row) for row in found.mappings().all()]}
 
 
 @router.post("/agents/jobs", response_model=JobView)
@@ -81,6 +81,18 @@ async def approve_job(request: Request, job_id: str) -> JobView:
         raise AegisError(409, "VERSION_MISMATCH", "workflow definition version changed; approval cannot be applied")
     row = await request.app.state.engine.resume(request.state.session, job_id, decision)
     return _view(row)
+
+
+def _json_event(row) -> dict:
+    payload = dict(row)
+    for key, value in list(payload.items()):
+        if value is None:
+            continue
+        if hasattr(value, "isoformat"):
+            payload[key] = value.isoformat()
+        else:
+            payload[key] = str(value)
+    return payload
 
 
 def _view(row: dict) -> JobView:

@@ -1,0 +1,41 @@
+# GET /api/v1/me
+# 2026-10-10 host uvicorn 127.0.0.1:8000, 10 VUs, 30s
+# k6 run -e BASE_URL=http://127.0.0.1:8000 -e ACCESS_TOKEN=… scripts/load_test_k6.js
+# Threshold p(95)<800 is the gate. Do not quote 45ms; this laptop measured 43.15ms.
+# Tempo screenshot: not captured. Grafana/Tempo were not running.
+
+     execution: local
+        script: scripts/load_test_k6.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 10 max VUs, 1m0s max duration (incl. graceful stop):
+              * default: 10 looping VUs for 30s (gracefulStop: 30s)
+
+  █ THRESHOLDS
+
+    checks
+    ✓ 'rate>0.99' rate=100.00%
+
+    http_req_duration
+    ✓ 'p(95)<800' p(95)=43.15ms
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......: 12456   415.110641/s
+    checks_succeeded...: 100.00% 12456 out of 12456
+    checks_failed......: 0.00%   0 out of 12456
+
+    ✓ me 200
+
+    HTTP
+    http_req_duration..............: avg=24.04ms min=6.21ms med=23.89ms max=106.99ms p(90)=39ms    p(95)=43.15ms
+      { expected_response:true }...: avg=24.04ms min=6.21ms med=23.89ms max=106.99ms p(90)=39ms    p(95)=43.15ms
+    http_req_failed................: 0.00%  0 out of 12456
+    http_reqs......................: 12456  415.110641/s
+
+    EXECUTION
+    iteration_duration.............: avg=24.08ms min=6.24ms med=23.93ms max=107.96ms p(90)=39.04ms p(95)=43.18ms
+    iterations.....................: 12456  415.110641/s
+    vus............................: 10     min=10         max=10
+    vus_max........................: 10     min=10         max=10

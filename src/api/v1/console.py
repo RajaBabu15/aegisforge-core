@@ -11,6 +11,7 @@ from src.core.errors import AegisError
 router = APIRouter()
 
 _SAMPLE = "Fault AF9001 clears only when the operator runs RESET-9001."
+_SAMPLE_B = "Connection runbook for tenant Other. Secret marker TENANT-B-ONLY. Fault AF9001 clears with RESET-B."
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -376,9 +377,23 @@ _PAGE = """<!doctype html>
     <button id="deactivate" class="danger" type="button">Deactivate developer</button>
     <pre id="deact-out">Not run.</pre>
   </section>
+
+  <section class="span">
+    <div class="kicker">07</div>
+    <h2>Second tenant</h2>
+    <p>Same title, different tenant. Search as Demo after Other has ingested. Tenant B text must not appear.</p>
+    <div class="row">
+      <label>Other developer <input id="other-email" value="dev@other.aegisforge.local"></label>
+      <label>Password <span class="secret"><input id="other-password" type="password" value="other-developer-password"><button class="reveal" type="button" data-reveal="other-password" aria-label="View password">View</button></span></label>
+      <button id="other-login" class="secondary" type="button">Sign in Other</button>
+      <button id="load-doc-b" type="button">Load Other runbook</button>
+      <button id="search-as-a" class="secondary" type="button">Search AF9001 as Demo</button>
+    </div>
+    <pre id="iso-out">Not run.</pre>
+  </section>
 </main>
 <script>
-const state = { dev: null, admin: null, jobId: null };
+const state = { dev: null, admin: null, other: null, jobId: null };
 
 function show(id, text, kind) {
   const node = document.getElementById(id);
@@ -404,7 +419,8 @@ async function login(kind) {
   if (response.ok) state[kind] = result.body;
   const who = [
     state.dev ? "developer " + state.dev.email : "developer signed out",
-    state.admin ? "admin " + state.admin.email : "admin signed out"
+    state.admin ? "admin " + state.admin.email : "admin signed out",
+    state.other ? "other " + state.other.email : "other signed out"
   ].join("\\n");
   const shown = Object.assign({}, result.body);
   if (shown.access_token) shown.claims = claims(shown.access_token);
@@ -423,6 +439,7 @@ document.querySelectorAll("button.reveal").forEach((button) => {
 
 document.getElementById("dev-login").onclick = () => login("dev");
 document.getElementById("admin-login").onclick = () => login("admin");
+document.getElementById("other-login").onclick = () => login("other");
 
 document.getElementById("replay").onclick = async () => {
   if (!state.dev) { show("replay-out", "Sign in the developer first.", "bad"); return; }
@@ -533,6 +550,28 @@ document.getElementById("deactivate").onclick = async () => {
   show("deact-out", JSON.stringify(result.body, null, 2) + "\\naccess " + me.status, me.status === 401 ? "ok" : "bad");
 };
 
+document.getElementById("load-doc-b").onclick = async () => {
+  if (!state.other) { show("iso-out", "Sign in Other first.", "bad"); return; }
+  const result = await read(await fetch("/api/v1/retrieval/documents", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + state.other.access_token, "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "Connection runbook", content: "SAMPLE_B", page: 1, line_start: 1, line_end: 1 })
+  }));
+  show("iso-out", JSON.stringify(result.body, null, 2), result.status === 200 ? "ok" : "bad");
+};
+
+document.getElementById("search-as-a").onclick = async () => {
+  if (!state.dev) { show("iso-out", "Sign in the Demo developer first.", "bad"); return; }
+  const result = await read(await fetch("/api/v1/retrieval/query", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + state.dev.access_token, "Content-Type": "application/json" },
+    body: JSON.stringify({ query: "AF9001" })
+  }));
+  const blob = JSON.stringify(result.body);
+  const leaked = blob.indexOf("TENANT-B-ONLY") >= 0 || blob.indexOf("RESET-B") >= 0;
+  show("iso-out", blob, result.status === 200 && !leaked ? "ok" : "bad");
+};
+
 fetch("/health").then(r => r.json()).then(body => {
   document.getElementById("health").textContent = body.status === "ok" ? "App is up" : "App health check failed";
 }).catch(() => {
@@ -543,4 +582,4 @@ fetch("/health").then(r => r.json()).then(body => {
 </html>
 """
 
-_PAGE = _PAGE.replace('"SAMPLE"', json.dumps(_SAMPLE))
+_PAGE = _PAGE.replace('"SAMPLE"', json.dumps(_SAMPLE)).replace('"SAMPLE_B"', json.dumps(_SAMPLE_B))

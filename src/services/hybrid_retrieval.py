@@ -58,7 +58,13 @@ def lexical_score(query: str, content: str) -> float:
     if not query_tokens:
         return 0.0
     content_tokens = set(_TOKEN.findall(content.lower()))
-    return len(query_tokens & content_tokens) / len(query_tokens)
+    overlap = len(query_tokens & content_tokens) / len(query_tokens)
+    lowered = content.lower()
+    for token in query_tokens:
+        if re.search(rf"(?<![a-z0-9]){re.escape(token)}-", lowered):
+            overlap *= 0.4
+            break
+    return overlap
 
 
 class HybridRetriever:

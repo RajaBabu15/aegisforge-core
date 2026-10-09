@@ -1,8 +1,10 @@
 # AegisForge
 
-Multi-tenant agent API. The build contract is [docs/PRD.md](docs/PRD.md).
+Multi-tenant agent API. The build contract is [docs/PRD.md](docs/PRD.md). Console walkthrough: [docs/DEMO.md](docs/DEMO.md). Threats: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 Identity is checked at the edge and again in PostgreSQL. Refresh-token reuse revokes the whole family. Agent tools run only when the checkpoint scopes allow them, and high-risk tools stay suspended until a signed approval. Hybrid search cites chunks or returns `INSUFFICIENT_EVIDENCE` before any generator call.
+
+The LangGraph is the control plane. Tool selection is the first line of the task, so authorization can be tested without a model. Do not describe this as multi-agent reasoning.
 
 ## Run the cluster
 
@@ -15,11 +17,14 @@ docker compose -f docker/docker-compose.yml up --build -d
 curl -fsS http://localhost:8000/health
 ```
 
-Open `http://localhost:8000/`. Sign in and use the buttons on that page. API docs stay at `http://localhost:8000/docs`. Grafana is at `http://localhost:3000`. Traces are not a dashboard panel: open Grafana Explore, pick the Tempo datasource, and search by the `trace_id` returned in any API response or error body.
+Open `http://localhost:8000/`. Sign in and use the numbered panels. Copy `AEGIS_BOOTSTRAP_B_*` from `docker/local.env.example` into `docker/local.env` so panel 07 has the Other tenant. API docs stay at `http://localhost:8000/docs`. Grafana is at `http://localhost:3000`. Skip Grafana if the dashboard is empty. Traces: Grafana Explore → Tempo → `trace_id` from any API body.
 
 ```bash
 python scripts/simulate_replay_attack.py
+k6 run -e BASE_URL=http://localhost:8000 -e ACCESS_TOKEN="$TOKEN" scripts/load_test_k6.js
 ```
+
+Last `/api/v1/me` k6 table: [docs/evidence/k6.txt](docs/evidence/k6.txt). Retrieval eval (near-misses, synonyms, tenant B): `pytest tests/evaluation -q`. `AF0100` used to rank `AF0100-BETA` (`RESET-0150`) first; `lexical_score` now down-weights hyphenated cousins so `near_miss_ok` is P@1 against the gold reset.
 
 ## Model switches
 
