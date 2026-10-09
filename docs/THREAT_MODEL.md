@@ -8,7 +8,7 @@ A presented refresh token is consumed in SQL. Reuse returns `replay` and revokes
 
 ## Cross-tenant RAG
 
-Qdrant filters `tenant_id`. Tantivy lives under `tantivy_dir/<tenant_id>/`. Query drops chunks whose stored tenant does not match. Boot hydrate lists tenant ids as migrator, then reads chunks as `aegis_app` with `app.current_tenant_id` set per tenant. Failed hydrate marks `/ready` down.
+Qdrant filters `tenant_id`. Tantivy lives under `tantivy_dir/<tenant_id>/`. Query drops chunks whose stored tenant does not match. Boot hydrate lists tenant ids as migrator, then reads chunks as `aegis_app` with `app.current_tenant_id` set per tenant. Each tenant’s Qdrant points and Tantivy dir are wiped and rebuilt from Postgres so a crash mid-retry cannot leave orphan index rows. Failed hydrate marks `/ready` down.
 
 ## Tool scope
 
@@ -20,7 +20,7 @@ HMAC over `timestamp + job_id + body`, 300s window, Redis nonce, job-bound signa
 
 ## Rate limits
 
-Sliding 60s window in Redis (sorted set). `/oauth/token` is capped per TCP peer IP (default 30). Clients behind one NAT share that bucket. Job approval is capped per user id (default 20). No `X-Forwarded-For`.
+Sliding 60s window in Redis via one Lua script (`ZREMRANGEBYSCORE` + `ZCARD` + `ZADD` + `EXPIRE`). `/oauth/token` is capped per TCP peer IP (default 30). Clients behind one NAT share that bucket. Job approval is capped per user id (default 20). No `X-Forwarded-For`.
 
 ## Login before tenant GUC
 

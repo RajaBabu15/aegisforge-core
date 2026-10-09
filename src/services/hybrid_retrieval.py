@@ -1,6 +1,7 @@
 import hashlib
 import math
 import re
+import shutil
 import threading
 from collections import defaultdict
 from dataclasses import dataclass
@@ -8,7 +9,15 @@ from pathlib import Path
 
 import tantivy
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    FilterSelector,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 
 
 
@@ -131,6 +140,23 @@ class HybridRetriever:
         self._indexes[tenant_id] = index
         self._locks[tenant_id] = threading.Lock()
         return index
+
+    def _reset_tenant_indexes(self, tenant_id: str) -> None:
+        self.meta = {key: value for key, value in self.meta.items() if value.get("tenant_id") != tenant_id}
+        self._indexes.pop(tenant_id, None)
+        self._locks.pop(tenant_id, None)
+        path = self.tantivy_dir / tenant_id
+        if path.exists():
+            shutil.rmtree(path)
+        try:
+            self.qdrant.delete(
+                collection_name="chunks",
+                points_selector=FilterSelector(
+                    filter=Filter(must=[FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))])
+                ),
+            )
+        except Exception:
+            pass
 
     def ingest(
         self,
@@ -344,7 +370,6 @@ class HybridRetriever:
             await migrator.close()
         app = await asyncpg.connect(asyncpg_dsn(app_url))
         try:
-            write_sparse: dict[str, bool] = {}
             for tenant in tenants:
                 tenant_id = str(tenant["id"])
                 await app.execute("SELECT set_config('app.current_tenant_id', $1, false)", tenant_id)
@@ -356,9 +381,7 @@ class HybridRetriever:
                     JOIN documents d ON d.id = c.document_id
                     """
                 )
-                if tenant_id not in write_sparse:
-                    path = self.tantivy_dir / tenant_id
-                    write_sparse[tenant_id] = not (path.exists() and any(path.iterdir()))
+                self._reset_tenant_indexes(tenant_id)
                 for row in rows:
                     self._index_chunk(
                         tenant_id=str(row["tenant_id"]),
@@ -369,7 +392,7 @@ class HybridRetriever:
                         line_end=row["line_end"],
                         content=row["content"],
                         digest=str(row["sha256"]).strip(),
-                        write_sparse=write_sparse[tenant_id],
+                        write_sparse=True,
                     )
             self.hydrate_ok = True
         except Exception as exc:

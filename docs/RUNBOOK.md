@@ -38,4 +38,4 @@ POST /api/v1/retrieval/documents
 POST /api/v1/retrieval/query
 ```
 
-Index write is retried three times. Failure rolls back the request transaction. Empty or low-score query is 422 `INSUFFICIENT_EVIDENCE`.
+Index write is retried three times. Failure rolls back the request transaction. Boot hydrate rebuilds each tenant’s Qdrant + Tantivy from Postgres. Empty or low-score query is 422 `INSUFFICIENT_EVIDENCE`.
